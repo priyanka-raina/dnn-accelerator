@@ -10,7 +10,7 @@
 ## Description of the files
 [`conv_systolic_packed_OS_v5`](conv_systolic_packed_OS_v5) - This folder has ?
 * [`conv_systolic_packed_OS_v5/conv_ref.cpp`](conv_systolic_packed_OS_v5/conv_ref.cpp) - Gold model for convolution
-* [`conv_systolic_packed_OS_v5/conv_ref.h`](conv_systolic_packed_OS_v5/conv_ref.h) - Gold model for convolution
+* [`conv_systolic_packed_OS_v5/conv_ref.h`](conv_systolic_packed_OS_v5/conv_ref.h) - Header file for `conv_ref.cpp`
 * [`conv_systolic_packed_OS_v5/Stencil_catapult.h`](conv_systolic_packed_OS_v5/Stencil_catapult.h) -
 * [`conv_systolic_packed_OS_v5/double_buffer.cpp`](conv_systolic_packed_OS_v5/double_buffer.cpp) -
 * [`conv_systolic_packed_OS_v5/hls_target.cpp`](conv_systolic_packed_OS_v5/hls_target.cpp) - Top level design file input to HLS
