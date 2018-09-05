@@ -12,7 +12,7 @@
 * [`conv_systolic_packed_OS_v5/conv_ref.cpp`](conv_systolic_packed_OS_v5/conv_ref.cpp) - Gold model for convolution
 * [`conv_systolic_packed_OS_v5/conv_ref.h`](conv_systolic_packed_OS_v5/conv_ref.h) - Header file for `conv_ref.cpp`
 * [`conv_systolic_packed_OS_v5/Stencil_catapult.h`](conv_systolic_packed_OS_v5/Stencil_catapult.h) -
-* [`conv_systolic_packed_OS_v5/double_buffer.cpp`](conv_systolic_packed_OS_v5/double_buffer.cpp) -
+* [`conv_systolic_packed_OS_v5/double_buffer.cpp`](conv_systolic_packed_OS_v5/double_buffer.cpp) - This is different in the two folders. This one seems to have 16 outputs - what does this number correspond to in the design?
 * [`conv_systolic_packed_OS_v5/hls_target.cpp`](conv_systolic_packed_OS_v5/hls_target.cpp) - Top level design file input to HLS
 * [`conv_systolic_packed_OS_v5/hls_target.h`](conv_systolic_packed_OS_v5/hls_target.h) - Header file for `hls_target.cpp`. Hardware attributes are defined here?
 * [`conv_systolic_packed_OS_v5/tb_hls_target.cpp`](conv_systolic_packed_OS_v5/tb_hls_target.cpp) - Top level testbench - verifies if the design in `hls_target.cpp` is same as `conv_ref.cpp` for randomly generated test vectors
