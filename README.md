@@ -26,6 +26,6 @@
 * [`conv_systolic_packed_v13/conv_ref.h`](conv_systolic_packed_v13/conv_ref.h)
 * [`conv_systolic_packed_v13/double_buffer.cpp`](conv_systolic_packed_v13/double_buffer.cpp)
 * [`conv_systolic_packed_v13/tb_gemm_systolic.cpp`](conv_systolic_packed_v13/tb_gemm_systolic.cpp)
-* [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp concat_rtl.v`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp concat_rtl.v)
-
+* [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp)
+* [`conv_systolic_packed_v13/concat_rtl.v`](conv_systolic_packed_v13/concat_rtl.v)
 ## How to run catapult
