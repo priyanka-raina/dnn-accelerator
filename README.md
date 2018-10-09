@@ -21,12 +21,12 @@
 
 [`conv_systolic_packed_v13`](conv_systolic_packed_v13) - This folder has WS16 design
 * [`conv_systolic_packed_v13/Stencil_catapult.h`](conv_systolic_packed_v13/Stencil_catapult.h) - Same as the file above folder
-* [`conv_systolic_packed_v13/conv.h`](conv_systolic_packed_v13/conv.h) -same as hls_target.h as above
+* [`conv_systolic_packed_v13/conv.h`](conv_systolic_packed_v13/conv.h) -same as `hls_target.h` as above
 * [`conv_systolic_packed_v13/conv_ref.cpp`](conv_systolic_packed_v13/conv_ref.cpp) - Same as the file above folder
 * [`conv_systolic_packed_v13/conv_ref.h`](conv_systolic_packed_v13/conv_ref.h)
 * [`conv_systolic_packed_v13/double_buffer.cpp`](conv_systolic_packed_v13/double_buffer.cpp)
 * [`conv_systolic_packed_v13/tb_gemm_systolic.cpp`](conv_systolic_packed_v13/tb_gemm_systolic.cpp)
-* [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp) -Same as hls_target.cpp as above
+* [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp) -Same as `hls_target.cpp` as above
 * [`conv_systolic_packed_v13/concat_rtl.v`](conv_systolic_packed_v13/concat_rtl.v)
 
 ## How to run catapult
