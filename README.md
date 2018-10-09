@@ -28,4 +28,7 @@
 * [`conv_systolic_packed_v13/tb_gemm_systolic.cpp`](conv_systolic_packed_v13/tb_gemm_systolic.cpp)
 * [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp)
 * [`conv_systolic_packed_v13/concat_rtl.v`](conv_systolic_packed_v13/concat_rtl.v)
+
 ## How to run catapult
+
+https://docs.google.com/document/d/1NrQi8JJyspAChkBYfLLc_DQbHuIAQlz9DGFKn6Y0wls/edit?ts=5bbc0010
