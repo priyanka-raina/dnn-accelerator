@@ -1,4 +1,6 @@
 # DNN Accelerator Generator
+## Analytical model and auto-scheduler
+https://github.com/xuanyoya/CNN-blocking/tree/dev
 
 ## Designs in the paper
 | Name  | Dataflow | Dimension | PE Number | RF Size | Mem Size
@@ -6,6 +8,10 @@
 | OS4 | X | 1D | 4 | 32 B | 32 KB |
 | OS8 | X | 1D | 8 | 64 B | 64 KB |
 | WS16 | C K | 2D | 16 | 64 B | 32 KB |
+
+
+## How to run catapult
+https://docs.google.com/document/d/1NrQi8JJyspAChkBYfLLc_DQbHuIAQlz9DGFKn6Y0wls/edit?ts=5bbc0010
 
 ## Description of the files
 [`conv_systolic_packed_OS_v5`](conv_systolic_packed_OS_v5) - This folder has OS16 design
@@ -29,6 +35,3 @@
 * [`conv_systolic_packed_v13/catapult_gemm_systolic.cpp`](conv_systolic_packed_v13/catapult_gemm_systolic.cpp) -Same as `hls_target.cpp` as above
 * [`conv_systolic_packed_v13/concat_rtl.v`](conv_systolic_packed_v13/concat_rtl.v)
 
-## How to run catapult
-
-https://docs.google.com/document/d/1NrQi8JJyspAChkBYfLLc_DQbHuIAQlz9DGFKn6Y0wls/edit?ts=5bbc0010
