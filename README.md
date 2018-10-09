@@ -1,5 +1,4 @@
-# DNN Accelerator
-Potentially EE272 class project
+# DNN Accelerator Generator
 
 ## Designs in the paper
 | Name  | Dataflow | Dimension | PE Number | RF Size | Mem Size
