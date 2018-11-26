@@ -9,4 +9,4 @@ colors () {
 
 SNPS_SAIF_MAP_ON=TRUE
 export SNPS_SAIF_MAP_ON
-dc_shell-xg-t -x "source $dir/common_procs.tcl; source -echo $dir/synthesis.tcl" | tee dc.log | sed -e $(colors information $green) -e $(colors warning $blue) -e $(colors error $red)
+dc_shell -topo -x "source $dir/common_procs.tcl; source -echo $dir/synthesis.tcl" | tee dc.log | sed -e $(colors information $green) -e $(colors warning $blue) -e $(colors error $red)

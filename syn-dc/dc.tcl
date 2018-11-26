@@ -54,9 +54,9 @@ proc setup_design {} {
 
 proc config_libraries {} {
     # How to estimate wire loads from area of design
-    set_app_var auto_wire_load_selection area_reselect
-    set_wire_load_mode enclosed
-    set_wire_load_selection_group WireAreaLowkCon
+    #set_app_var auto_wire_load_selection area_reselect
+    #set_wire_load_mode enclosed
+    #set_wire_load_selection_group WireAreaLowkCon
 
     # use operating conditions from the standard-cell library
     set_operating_conditions -max ss0p9v125c -min ff1p1v0c -max_library tcbn28hplbwphvtss0p9v125c -min_library tcbn28hplbwphvtff1p1v0c
@@ -94,9 +94,9 @@ proc config_design {} {
     #set_driving_cell -max -library <library name> -lib_cell <cell name> [all_inputs]
     #set_driving_cell -min -library <library name> -lib_cell <cell name> [all_inputs]
     
-    set_load [load_of tphn28hplgv18tt1v1p8v25c/PDDW08DGZ_V_G/I] [all_outputs]
-    set_driving_cell -max -lib_cell PDDW08DGZ_V_G -pin C -library tphn28hplgv18ssg0p9v1p62v125c [all_inputs]
-    set_driving_cell -min -lib_cell PDDW08DGZ_V_G -pin C -library tphn28hplgv18ff1p1v1p98v0c [all_inputs]
+    set_load [load_of tphn28hplgv18ssg0p9v1p62v125c/PRDW08DGZ_H_G/I] [all_outputs]
+    set_driving_cell -max -lib_cell PRDW08DGZ_H_G -pin C -library tphn28hplgv18ssg0p9v1p62v125c [all_inputs]
+    set_driving_cell -min -lib_cell PRDW08DGZ_H_G -pin C -library tphn28hplgv18ff1p1v1p98v0c [all_inputs]
     # optimize paths that are failing as well as paths within 1ns of the margin
     set_critical_range 1.0 [current_design]
 
@@ -106,9 +106,9 @@ proc config_design {} {
     #set_dynamic_optimization true
 
     # don't remove io cells
-    set_dont_touch [get_lib_cells tpzn*/*]
+    set_dont_touch [get_lib_cells tphn*/*]
 
-    source ./voltages.upf
+    #source ./voltages.upf
 }
 
 proc run_compile {} {
