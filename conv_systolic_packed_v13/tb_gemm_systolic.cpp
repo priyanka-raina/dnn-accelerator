@@ -93,7 +93,8 @@ static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > output_stream;
            DTYPE out_value = output_col(jj, j);
            if((int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj] != (int)out_value) {
                errCnt++;
-               //printf("output[%d][%d][%d] = %d, ref = %d\n",p, i, k*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj]); 
+               printf("output[%d][%d][%d] = %d, ref = %d\n",p, i, k*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj]);
+               printf("KO: %d, KI: %d, KII: %d\n", k, j, jj); 
            }
           } 
         }

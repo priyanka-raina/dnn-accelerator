@@ -10,6 +10,13 @@
 #include "double_buffer.cpp"
 #include "conv.h"
 
+#include <boost/preprocessor/repetition/repeat.hpp>
+#include <boost/preprocessor/punctuation/comma_if.hpp>
+#include <boost/preprocessor/cat.hpp>
+
+#define ARRAY_DIMENSION 4
+#define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
+
 template<typename DTYPE, int KI>
 class pe_class{
   private:
@@ -35,10 +42,15 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
                     ac_channel<PackedStencil<DTYPE, KI, X_TILE, 1> > &weight, 
                     ac_channel<PackedStencil<DTYPE, KI, X_TILE, 1> > &output) {
 
+  #define OUT_TILE_INIT(z,i,data)\
+    PackedStencil<DTYPE, KI, 1, 1> BOOST_PP_CAT(out_tile_,i)[Y_TILE*K_TILE];   
+  REPEAT(OUT_TILE_INIT)
+  /*
   PackedStencil<DTYPE, KI, 1, 1> out_tile_0[Y_TILE*K_TILE]; 
   PackedStencil<DTYPE, KI, 1, 1> out_tile_1[Y_TILE*K_TILE]; 
   PackedStencil<DTYPE, KI, 1, 1> out_tile_2[Y_TILE*K_TILE]; 
   PackedStencil<DTYPE, KI, 1, 1> out_tile_3[Y_TILE*K_TILE]; 
+  */
 
   static pe_class<DTYPE, KI> pe[R_TILE+1][X_TILE+1];
   DTYPE in_tmp[R_TILE+1][X_TILE+1];
@@ -54,7 +66,6 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 
   STEPS: for (int step=0; step<X_TILE+R_TILE+Y_TILE-1; ++step) {
       PackedStencil<DTYPE,KI, X_TILE> w_tile[R_TILE];
-
 
       if (step < R_TILE) {            
         PackedStencil<DTYPE,KI, X_TILE> w_row = weight.read();
@@ -82,6 +93,13 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 
       PackedStencil<DTYPE, R_TILE,1,1> input_buf;
 
+        #define INPUT_FIFO_BODY(z,i,data) \
+        BOOST_PP_CAT(DTYPE input_fifo_, i); \
+        fifo<60000+i,DTYPE,R_TILE-3+i>( in_col(i ,0,0), BOOST_PP_CAT(input_fifo_, i));\
+        input_buf( BOOST_PP_CAT(input_fifo_, i), i ,0,0,0);\
+
+      REPEAT(INPUT_FIFO_BODY)
+      /*
       DTYPE input_fifo_0;
       fifo<60000,DTYPE,R_TILE-3>(in_col(0,0,0), input_fifo_0);
       input_buf(input_fifo_0, 0,0,0,0);
@@ -94,31 +112,48 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
       DTYPE input_fifo_3;
       fifo<60003,DTYPE,R_TILE-0>(in_col(3,0,0), input_fifo_3);
       input_buf(input_fifo_3, 3,0,0,0);
+        */
 
 /*#ifndef __SYNTHESIS__
       printf("starting step %d - input %d %d %d %d\n", step, input_fifo_0,input_fifo_1,input_fifo_2,input_fifo_3);
 #endif*/
 
 
+    #define TMP_ROW_BODY(z,i,data) \
+      PackedStencil<DTYPE, KI, 1, 1, 1> BOOST_PP_CAT(tmp_row_, i);
 
+    REPEAT(TMP_ROW_BODY)
+    /*
     PackedStencil<DTYPE, KI, 1,1,1> tmp_row_0;
     PackedStencil<DTYPE, KI, 1,1,1> tmp_row_1;
     PackedStencil<DTYPE, KI, 1,1,1> tmp_row_2;
     PackedStencil<DTYPE, KI, 1,1,1> tmp_row_3;
+    */
     if (step < Y_TILE) {
       if(c_idx == 0 && wx_idx == 0 && wy_idx == 0) {
     #pragma hls_unroll yes           
             for (int sk = 0; sk < KI; sk++) {
+              #define TMP_ROW_BODY_INIT(z,i,data) \
+                BOOST_PP_CAT(tmp_row_, i)(0,sk,0,0,0);
+              
+              REPEAT(TMP_ROW_BODY_INIT)
+              /*
               tmp_row_0(0, sk, 0, 0, 0);
               tmp_row_1(0, sk, 0, 0, 0);
               tmp_row_2(0, sk, 0, 0, 0);
               tmp_row_3(0, sk, 0, 0, 0);
+              */
             }
       } else {
+          #define TMP_ROW_OUT(z,i,data) \
+          BOOST_PP_CAT(tmp_row_, i) = BOOST_PP_CAT(out_tile_, i)[k_idx*Y_TILE + step];
+        REPEAT(TMP_ROW_OUT)
+        /*
         tmp_row_0 = out_tile_0[k_idx*Y_TILE + step];
         tmp_row_1 = out_tile_1[k_idx*Y_TILE + step];
         tmp_row_2 = out_tile_2[k_idx*Y_TILE + step];
         tmp_row_3 = out_tile_3[k_idx*Y_TILE + step];
+        */
       }
     }
     
@@ -128,6 +163,13 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 #endif   */
       PackedStencil<DTYPE, KI, X_TILE,1> output_buf;
       
+      #define TMP_FIFO_BODY(z,i,data) \
+        PackedStencil<DTYPE, KI> BOOST_PP_CAT(tmp_fifo_,i);\
+        fifo<90000+i,PackedStencil<DTYPE,KI>, X_TILE-3+i>( BOOST_PP_CAT(tmp_row_,i), BOOST_PP_CAT(tmp_fifo_,i) );\
+        output_buf.set_dim( BOOST_PP_CAT(tmp_fifo_, i), i,0,0);
+      
+      REPEAT(TMP_FIFO_BODY)
+      /*
       PackedStencil<DTYPE, KI> tmp_fifo_0;
       fifo<90000,PackedStencil<DTYPE,KI>, X_TILE-3>(tmp_row_0, tmp_fifo_0);
       output_buf.set_dim(tmp_fifo_0, 0,0,0);
@@ -140,7 +182,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
       PackedStencil<DTYPE, KI> tmp_fifo_3;
       fifo<90003,PackedStencil<DTYPE,KI>, X_TILE-0>(tmp_row_3, tmp_fifo_3);
       output_buf.set_dim(tmp_fifo_3, 3,0,0);
-    
+      */
 /*#ifndef __SYNTHESIS__
       printf("starting step %d - partial result %d %d %d %d\n", step, tmp_fifo_0,tmp_fifo_1,tmp_fifo_2,tmp_fifo_3);
 #endif*/
@@ -166,7 +208,13 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 
       //write to fifos
       PackedStencil<DTYPE, KI, X_TILE> output_row;
-
+      #define FIFO_WRITE_BODY(z,i,data)\
+        PackedStencil<DTYPE, KI> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[R_TILE][i+1];\
+        PackedStencil<DTYPE, KI> BOOST_PP_CAT(output_fifo_,i); \
+        fifo<0+i,PackedStencil<DTYPE, KI>, X_TILE-i>( BOOST_PP_CAT(sys_array_out_,i), BOOST_PP_CAT(output_fifo_,i) );\
+        output_row.set_dim( BOOST_PP_CAT(output_fifo_,i), i,0,0); 
+      REPEAT(FIFO_WRITE_BODY)
+      /*
       PackedStencil<DTYPE, KI> sys_array_out_0 = out_tmp[R_TILE][1];       
       PackedStencil<DTYPE, KI> output_fifo_0;
       fifo<0,PackedStencil<DTYPE, KI>, X_TILE-0>(sys_array_out_0, output_fifo_0);
@@ -183,17 +231,22 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
       PackedStencil<DTYPE, KI> output_fifo_3;
       fifo<3,PackedStencil<DTYPE, KI>, X_TILE-3>(sys_array_out_3, output_fifo_3);
       output_row.set_dim(output_fifo_3, 3,0,0);
-      
+      */
 /*#ifndef __SYNTHESIS__
      /printf("ending step %d - output %d %d %d %d\n", step, output_fifo_0,output_fifo_1,output_fifo_2,output_fifo_3);
 #endif*/
 
     // output row if one has completed
     if (step >= X_TILE+R_TILE-1) {
+        #define OUTPUT_ROW_BODY(z,i,data)\
+        BOOST_PP_CAT(out_tile_,i)[k_idx*Y_TILE+step-(X_TILE+R_TILE-1)] = BOOST_PP_CAT(output_fifo_,i);
+      REPEAT(OUTPUT_ROW_BODY)
+      /*
        out_tile_0[k_idx*Y_TILE+step-(X_TILE+R_TILE-1)] = output_fifo_0; 
        out_tile_1[k_idx*Y_TILE+step-(X_TILE+R_TILE-1)] = output_fifo_1; 
        out_tile_2[k_idx*Y_TILE+step-(X_TILE+R_TILE-1)] = output_fifo_2; 
        out_tile_3[k_idx*Y_TILE+step-(X_TILE+R_TILE-1)] = output_fifo_3; 
+       */
       if (c_idx==C_TILE-1 && wx_idx == WS-1 && wy_idx == WS-1) {
         output.write(output_row);
       }
