@@ -14,7 +14,7 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
 
-#define ARRAY_DIMENSION 4
+#define ARRAY_DIMENSION 8
 #define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
 template<typename DTYPE, int KI>
@@ -95,7 +95,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 
         #define INPUT_FIFO_BODY(z,i,data) \
         BOOST_PP_CAT(DTYPE input_fifo_, i); \
-        fifo<60000+i,DTYPE,R_TILE-3+i>( in_col(i ,0,0), BOOST_PP_CAT(input_fifo_, i));\
+        fifo<60000+i,DTYPE,i+1>( in_col(i ,0,0), BOOST_PP_CAT(input_fifo_, i));\
         input_buf( BOOST_PP_CAT(input_fifo_, i), i ,0,0,0);\
 
       REPEAT(INPUT_FIFO_BODY)
@@ -165,7 +165,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
       
       #define TMP_FIFO_BODY(z,i,data) \
         PackedStencil<DTYPE, KI> BOOST_PP_CAT(tmp_fifo_,i);\
-        fifo<90000+i,PackedStencil<DTYPE,KI>, X_TILE-3+i>( BOOST_PP_CAT(tmp_row_,i), BOOST_PP_CAT(tmp_fifo_,i) );\
+        fifo<90000+i,PackedStencil<DTYPE,KI>, i+1>( BOOST_PP_CAT(tmp_row_,i), BOOST_PP_CAT(tmp_fifo_,i) );\
         output_buf.set_dim( BOOST_PP_CAT(tmp_fifo_, i), i,0,0);
       
       REPEAT(TMP_FIFO_BODY)

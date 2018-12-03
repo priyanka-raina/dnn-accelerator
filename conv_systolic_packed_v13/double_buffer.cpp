@@ -6,7 +6,7 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
 
-#define ARRAY_DIMENSION 4
+#define ARRAY_DIMENSION 8
 #define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
 template<typename T, int N>
@@ -116,44 +116,44 @@ void double_buffer_output(ac_channel<PackedStencil<DTYPE, KI, X_TILE> > &din,
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int R_TILE, int Y_TILE, int C_TILE, int WS>
 void WRITE_BLOCK_INPUT(ac_channel<PackedStencil<DTYPE,R_TILE> > &din,
-                        //REPEAT(WRITE_BLOCK_INPUT_PARAMS)
-                      ///*
+                        REPEAT(WRITE_BLOCK_INPUT_PARAMS)
+                      /*
                       ac_channel<chanStruct<DTYPE,Y_TILE*C_TILE> > &dout_0,
                       ac_channel<chanStruct<DTYPE,Y_TILE*C_TILE> > &dout_1,
                       ac_channel<chanStruct<DTYPE,Y_TILE*C_TILE> > &dout_2,
                       ac_channel<chanStruct<DTYPE,Y_TILE*C_TILE> > &dout_3
-                      //*/
+                      */
                      ) {
   
-//  REPEAT(WRITE_BLOCK_INPUT_INIT)
-//  /*
+  REPEAT(WRITE_BLOCK_INPUT_INIT)
+  /*
  chanStruct<DTYPE, Y_TILE*C_TILE> tmp_0;    //temporary array inside struct
  chanStruct<DTYPE, Y_TILE*C_TILE> tmp_1;    //temporary array inside struct
  chanStruct<DTYPE, Y_TILE*C_TILE> tmp_2;    //temporary array inside struct
  chanStruct<DTYPE, Y_TILE*C_TILE> tmp_3;    //temporary array inside struct
-// */
+ */
 #pragma hls_pipeline_init_interval 1
 for (int c_idx=0; c_idx < C_TILE; c_idx++) {
  WRITE:for (int y_idx = 0; y_idx < 0 + Y_TILE; y_idx++)
     {
       PackedStencil<DTYPE,R_TILE,1,1> column;
       column = din.read();
-      //REPEAT(WRITE_BLOCK_INPUT_TMP_WRITE)
-      ///*
+      REPEAT(WRITE_BLOCK_INPUT_TMP_WRITE)
+      /*
       tmp_0.data[c_idx*Y_TILE + y_idx] = column(0,0,0);
       tmp_1.data[c_idx*Y_TILE + y_idx] = column(1,0,0);
       tmp_2.data[c_idx*Y_TILE + y_idx] = column(2,0,0);
       tmp_3.data[c_idx*Y_TILE + y_idx] = column(3,0,0);
-      //*/
+      */
     } // for y_idx
   }
-  //REPEAT(WRITE_BLOCK_INPUT_WRITE)
-  ///*
+  REPEAT(WRITE_BLOCK_INPUT_WRITE)
+  /*
   dout_0.write(tmp_0);//Memory channel write
   dout_1.write(tmp_1);//Memory channel write
   dout_2.write(tmp_2);//Memory channel write
   dout_3.write(tmp_3);//Memory channel write
-  //*/
+  */
  //}
 }
 
@@ -164,35 +164,35 @@ for (int c_idx=0; c_idx < C_TILE; c_idx++) {
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int OROW, int OCOL, int R_TILE, int K_TILE, int C_TILE, int WS>
 void READ_BLOCK_INPUT( 
-                      //REPEAT(READ_BLOCK_INPUT_PARAMS)
-                      ///*
+                      REPEAT(READ_BLOCK_INPUT_PARAMS)
+                      /*
                       ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_0,
                       ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_1,
                       ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_2,
                       ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_3,
-                      //*/
+                      */
                      ac_channel<PackedStencil<DTYPE, R_TILE,1,1> > &dout){
 #define READ_BLOCK_INPUT_INIT(z, i, data)\
   chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> BOOST_PP_CAT(tmp_,i);
 
-//REPEAT(READ_BLOCK_INPUT_INIT)
-///*
+REPEAT(READ_BLOCK_INPUT_INIT)
+/*
 chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_0;    //temporary array inside struct
 chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_1;    //temporary array inside struct
 chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_2;    //temporary array inside struct
 chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_3;    //temporary array inside struct
-//*/
+*/
 
 #define READ_BLOCK_MEM_READ(z, i, data)\
   BOOST_PP_CAT(tmp_, i) = BOOST_PP_CAT(din_, i).read();
 
-//REPEAT(READ_BLOCK_MEM_READ)
-///*
+REPEAT(READ_BLOCK_MEM_READ)
+/*
 tmp_0 = din_0.read();                       // Single Memory channel read
 tmp_1 = din_1.read();                       // Single Memory channel read
 tmp_2 = din_2.read();                       // Single Memory channel read
 tmp_3 = din_3.read();                       // Single Memory channel read
-//*/
+*/
 #pragma hls_pipeline_init_interval 1
 READ: for (int c_idx = 0; c_idx <C_TILE; c_idx++) {
   for (int wx_idx = 0; wx_idx < WS; wx_idx++) {
@@ -206,13 +206,13 @@ READ: for (int c_idx = 0; c_idx <C_TILE; c_idx++) {
 
           #define READ_BLOCK_DOUT_STRUCT(z, i, unused)\
             dout_struct( BOOST_PP_CAT(tmp_,i).data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], i, 0, 0, 0);  
-          //REPEAT(READ_BLOCK_DOUT_STRUCT)
-          ///*
+          REPEAT(READ_BLOCK_DOUT_STRUCT)
+          /*
           dout_struct(tmp_0.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 0, 0, 0, 0);
           dout_struct(tmp_1.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 1, 0, 0, 0);
           dout_struct(tmp_2.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 2, 0, 0, 0);
           dout_struct(tmp_3.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 3, 0, 0, 0);
-          //*/
+          */
           dout.write(dout_struct);
 
      } // for y_idx
@@ -235,22 +235,22 @@ void double_buffer_input(//DTYPE din[X_TILE * Y_TILE],DTYPE dout[X_TILE * Y_TILE
     #define DOUBLE_BUFFER_INPUT_INIT(z,i,data)\
       static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > BOOST_PP_CAT(shr_mem_,i);
     
-    //REPEAT(DOUBLE_BUFFER_INPUT_INIT)
-    ///*
+    REPEAT(DOUBLE_BUFFER_INPUT_INIT)
+    /*
     static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_0;//Static memory channel
     static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_1;//Static memory channel
     static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_2;//Static memory channel
     static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_3;//Static memory channel
-    //*/
+    */
    #define WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,data)\
     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(shr_mem_, i)
-  //WRITE_BLOCK_INPUT<DTYPE, R_TILE, (OROW+WS-1)*(OCOL+WS-1), C_TILE, WS>(din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
-  WRITE_BLOCK_INPUT<DTYPE, R_TILE, (OROW+WS-1)*(OCOL+WS-1), C_TILE, WS>(din, shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3);
+  WRITE_BLOCK_INPUT<DTYPE, R_TILE, (OROW+WS-1)*(OCOL+WS-1), C_TILE, WS>(din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
+  //WRITE_BLOCK_INPUT<DTYPE, R_TILE, (OROW+WS-1)*(OCOL+WS-1), C_TILE, WS>(din, shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3);
   
   #define READ_BLOCK_INPUT_CALL_PARAMS(z,i,data)\
     BOOST_PP_CAT(shr_mem_, i),
-  //READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS>( REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) dout);
-  READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS>(shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3, dout);
+  READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS>( REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) dout);
+  //READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS>(shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3, dout);
 }
 
 #define WRITE_BLOCK_WEIGHT_PARAMS(z,i,data)\
@@ -259,24 +259,24 @@ void double_buffer_input(//DTYPE din[X_TILE * Y_TILE],DTYPE dout[X_TILE * Y_TILE
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int R_TILE, int X_TILE, int K_TILE, int C_TILE, int WS, int KI>
 void WRITE_BLOCK_WEIGHTS(ac_channel<PackedStencil<DTYPE, KI, X_TILE> > &din,
-                          //REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)
-                          ///*
+                          REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)
+                          /*
                          ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> > &dout_0,
                          ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> > &dout_1,
                          ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> > &dout_2,
                          ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> > &dout_3
-                         //*/
+                         */
                         ) {
  
  #define WRITE_BLOCK_WEIGHTS_INIT(z,i,data)\
   chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> BOOST_PP_CAT(tmp_,i);
-//REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
-///*
+REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
+/*
 chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> tmp_0;    //temporary array inside struct
 chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> tmp_1;    //temporary array inside struct
 chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> tmp_2;    //temporary array inside struct
 chanStruct<PackedStencil<DTYPE, KI, 1>, R_TILE*K_TILE*C_TILE*WS*WS> tmp_3;    //temporary array inside struct
-//*/
+*/
 #pragma hls_pipeline_init_interval 1
 for (int k_idx = 0; k_idx < K_TILE; k_idx++) {
   for (int c_idx = 0; c_idx < C_TILE; c_idx++) {
@@ -289,13 +289,13 @@ for (int k_idx = 0; k_idx < K_TILE; k_idx++) {
 
       #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
         BOOST_PP_CAT(tmp_, i).data[k_idx*R_TILE*C_TILE*WS*WS + c_idx*R_TILE*WS*WS + wx_idx*R_TILE  + r_idx] = row.get_dim(i,0,0);
-  //    REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
-      ///*
+      REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
+      /*
       tmp_0.data[k_idx*R_TILE*C_TILE*WS*WS + c_idx*R_TILE*WS*WS + wx_idx*R_TILE  + r_idx] = row.get_dim(0,0,0);
       tmp_1.data[k_idx*R_TILE*C_TILE*WS*WS + c_idx*R_TILE*WS*WS + wx_idx*R_TILE  + r_idx] = row.get_dim(1,0,0);
       tmp_2.data[k_idx*R_TILE*C_TILE*WS*WS + c_idx*R_TILE*WS*WS + wx_idx*R_TILE  + r_idx] = row.get_dim(2,0,0);
       tmp_3.data[k_idx*R_TILE*C_TILE*WS*WS + c_idx*R_TILE*WS*WS + wx_idx*R_TILE  + r_idx] = row.get_dim(3,0,0);
-      //*/
+      */
     } // for r_idx
    } // for wx_idx
    } //for c_idx
@@ -304,13 +304,13 @@ for (int k_idx = 0; k_idx < K_TILE; k_idx++) {
   #define WRITE_BLOCK_WEIGHTS_WRITE(z,i,data)\
     BOOST_PP_CAT(dout_,i).write(BOOST_PP_CAT(tmp_,i));
 
-  //REPEAT(WRITE_BLOCK_WEIGHTS_WRITE)
-  ///*
+  REPEAT(WRITE_BLOCK_WEIGHTS_WRITE)
+  /*
   dout_0.write(tmp_0);//Memory channel write
   dout_1.write(tmp_1);//Memory channel write
   dout_2.write(tmp_2);//Memory channel write
   dout_3.write(tmp_3);//Memory channel write
-  //*/
+  */
 }
 
 
@@ -319,13 +319,13 @@ for (int k_idx = 0; k_idx < K_TILE; k_idx++) {
 #pragma hls_design
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int X_TILE, int Y_TILE, int R_TILE, int K_TILE, int C_TILE, int WS, int KI>
-void READ_BLOCK_WEIGHTS( //REPEAT(READ_BLOCK_WEIGHTS_PARAMS)
-                        ///*
+void READ_BLOCK_WEIGHTS( REPEAT(READ_BLOCK_WEIGHTS_PARAMS)
+                        /*
                         ac_channel<chanStruct<PackedStencil<DTYPE,KI,1,1,1>, R_TILE*K_TILE*C_TILE*WS*WS> > &din_0,
                         ac_channel<chanStruct<PackedStencil<DTYPE,KI,1,1,1>, R_TILE*K_TILE*C_TILE*WS*WS> > &din_1,
                         ac_channel<chanStruct<PackedStencil<DTYPE,KI,1,1,1>, R_TILE*K_TILE*C_TILE*WS*WS> > &din_2,
                         ac_channel<chanStruct<PackedStencil<DTYPE,KI,1,1,1>, R_TILE*K_TILE*C_TILE*WS*WS> > &din_3,
-                        //*/
+                        */
                         ac_channel<PackedStencil<DTYPE, KI, X_TILE,1,1> > &dout){
 
   #define READ_BLOCK_WEIGHTS_INIT(z,i,data)\
