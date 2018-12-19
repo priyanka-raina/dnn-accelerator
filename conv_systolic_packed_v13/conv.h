@@ -15,9 +15,9 @@
 #include <ac_channel.h>
 #include "Stencil_catapult.h"
 
-#define KI_NUM     8 //4
+#define KI_NUM     4 //4
 #define KO_NUM      2   //kernel number = KO_NUM * KI_NUM
-#define CI_NUM      8 //4   
+#define CI_NUM      4 //4   
 #define CO_NUM      2   //channle number = CO_NUM * CI_NUM
 //window width and height
 #define W_SIZE     3  
@@ -26,6 +26,11 @@
 //output image col
 #define OCOL        4 //4  
 #define KII         2
+
+#define INPUT_BUFFER_LEVELS 3
+#define INPUT_BUFFER_SIZES (1,2,4)
+#define WEIGHT_BUFFER_LEVELS 3
+#define WEIGHT_BUFFER_SIZES (1,2,4)
 
 typedef ac_int<16> DTYPE;
 

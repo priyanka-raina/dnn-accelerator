@@ -13,8 +13,17 @@
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/comparison/not_equal.hpp>
+#include <boost/preprocessor/repetition/for.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/preprocessor/tuple/size.hpp>
+#include <boost/preprocessor/control/if.hpp>
+#include <boost/preprocessor/punctuation/comma.hpp>
+#include <boost/preprocessor/arithmetic/dec.hpp>
 
-#define ARRAY_DIMENSION 8
+
+#define ARRAY_DIMENSION 4
 #define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
 template<typename DTYPE, int KI>
@@ -262,17 +271,59 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, R_TILE, 1, 1> > &input,
 
 #pragma hls_design top
 #pragma hls_pipeline_init_interval 1
-void gemm(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input, 
+void gemm(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input_0, 
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight, 
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output) {
 
   static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_copy;
+  
+  // Macros used for for-loop 
+  #define PRED(r, state) \
+    BOOST_PP_NOT_EQUAL( \
+      BOOST_PP_TUPLE_ELEM(2, 0, state), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+    ) \
 
-  double_buffer_input<DTYPE, KI_NUM, OROW, OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input, input_copy);
+  #define OP(r, state) \
+  ( \
+      BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2, 0, state)), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+  ) \
 
+  /** INPUT **/
+  // Create ac_channel variables for connecting memory levels
+  #define MACRO_INPUT_INIT(r, state)\
+    static ac_channel<PackedStencil<DTYPE, CI_NUM> > BOOST_PP_CAT(input_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); 
+  BOOST_PP_FOR((0, INPUT_BUFFER_LEVELS), PRED, OP, MACRO_INPUT_INIT)
+
+  // Create N levels, each with the size in the tuple
+  #define MACRO_INPUT_N(r, state)\
+    double_buffer_input_n<DTYPE, KI_NUM, OROW, OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE, BOOST_PP_TUPLE_ELEM(INPUT_BUFFER_LEVELS, BOOST_PP_TUPLE_ELEM(2,0,state), INPUT_BUFFER_SIZES) >(BOOST_PP_CAT(input_,BOOST_PP_TUPLE_ELEM(2,0,state)) ,  BOOST_PP_CAT(input_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))));  
+  BOOST_PP_FOR((0, INPUT_BUFFER_LEVELS), PRED, OP, MACRO_INPUT_N)
+
+  // Final level double buffer
+  double_buffer_input_final<DTYPE, KI_NUM, OROW, OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(BOOST_PP_CAT(input_,INPUT_BUFFER_LEVELS), input_copy);
+
+  /** WEIGHTS **/
+  static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > weight_0;
+  // Top level double buffer for rearranging weights
+  double_buffer_weights_top<DTYPE, KII, KI_NUM,OROW*OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(weight, weight_0);
   static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_copy;
+  
+  // Create ac_channel variables for connecting memory levels
+  #define MACRO_WEIGHT_INIT(r, state)\
+    static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > BOOST_PP_CAT(weight_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); 
+  BOOST_PP_FOR((0, BOOST_PP_DEC(WEIGHT_BUFFER_LEVELS)), PRED, OP, MACRO_WEIGHT_INIT)
 
-  double_buffer_weights<DTYPE, KII, KI_NUM, OROW*OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(weight, weight_copy);
+  // Create N levels, each wtih size in the tuple
+  #define MACRO_WEIGHT_N(r, state)\
+    double_buffer_weights_n<DTYPE, KII, KI_NUM, OROW*OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE, BOOST_PP_TUPLE_ELEM(WEIGHT_BUFFER_LEVELS, BOOST_PP_TUPLE_ELEM(2,0,state), WEIGHT_BUFFER_SIZES) > (BOOST_PP_CAT(weight_,BOOST_PP_TUPLE_ELEM(2,0,state)) ,  BOOST_PP_CAT(weight_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))));  
+  BOOST_PP_FOR((0, BOOST_PP_DEC(WEIGHT_BUFFER_LEVELS)), PRED, OP, MACRO_WEIGHT_N)
+
+  #define MACRO_WEIGHT_FINAL(r, state)\
+    double_buffer_weights_n<DTYPE, KII, KI_NUM, OROW*OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE, BOOST_PP_TUPLE_ELEM(WEIGHT_BUFFER_LEVELS, BOOST_PP_TUPLE_ELEM(2,0,state), WEIGHT_BUFFER_SIZES) > (BOOST_PP_CAT(weight_,BOOST_PP_TUPLE_ELEM(2,0,state)), weight_copy);
+  BOOST_PP_FOR((BOOST_PP_DEC(WEIGHT_BUFFER_LEVELS), WEIGHT_BUFFER_LEVELS), PRED, OP, MACRO_WEIGHT_FINAL)
+
 
   static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > output_copy;
 
