@@ -94,7 +94,7 @@ proc config_design {} {
     #set_driving_cell -max -library <library name> -lib_cell <cell name> [all_inputs]
     #set_driving_cell -min -library <library name> -lib_cell <cell name> [all_inputs]
     
-    set_load [load_of tphn28hplgv18ssg0p9v1p62v125c/PRDW08DGZ_H_G/I] [all_outputs]
+    # set_load [load_of tphn28hplgv18tt1v1p8v25c/PRDW08DGZ_H_G/I] [all_outputs]
     set_driving_cell -max -lib_cell PRDW08DGZ_H_G -pin C -library tphn28hplgv18ssg0p9v1p62v125c [all_inputs]
     set_driving_cell -min -lib_cell PRDW08DGZ_H_G -pin C -library tphn28hplgv18ff1p1v1p98v0c [all_inputs]
     # optimize paths that are failing as well as paths within 1ns of the margin
@@ -106,7 +106,7 @@ proc config_design {} {
     #set_dynamic_optimization true
 
     # don't remove io cells
-    set_dont_touch [get_lib_cells tphn*/*]
+    # set_dont_touch [get_lib_cells tpzn*/*]
 
     #source ./voltages.upf
 }
