@@ -127,17 +127,17 @@ for (int c_idx=0; c_idx < C_TILE; c_idx++) {
 
 #pragma hls_design
 #pragma hls_pipeline_init_interval 1
-template <typename DTYPE, int OROW, int OCOL, int R_TILE, int K_TILE, int C_TILE, int WS>
-void READ_BLOCK_INPUT(ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_0,
-                      ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_1,
-                      ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_2,
-                      ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > &din_3,
+template <typename DTYPE, int OROW, int OCOL, int R_TILE, int K_TILE, int C_TILE, int WS, int STRIDE>
+void READ_BLOCK_INPUT(ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > &din_0,
+                      ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > &din_1,
+                      ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > &din_2,
+                      ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > &din_3,
                      ac_channel<PackedStencil<DTYPE, R_TILE,1,1> > &dout){
 
-chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_0;    //temporary array inside struct
-chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_1;    //temporary array inside struct
-chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_2;    //temporary array inside struct
-chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> tmp_3;    //temporary array inside struct
+chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> tmp_0;    //temporary array inside struct
+chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> tmp_1;    //temporary array inside struct
+chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> tmp_2;    //temporary array inside struct
+chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> tmp_3;    //temporary array inside struct
 tmp_0 = din_0.read();                       // Single Memory channel read
 tmp_1 = din_1.read();                       // Single Memory channel read
 tmp_2 = din_2.read();                       // Single Memory channel read
@@ -152,10 +152,10 @@ READ: for (int c_idx = 0; c_idx <C_TILE; c_idx++) {
     {
 
           PackedStencil<DTYPE, R_TILE,1,1> dout_struct;
-          dout_struct(tmp_0.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 0, 0, 0, 0);
-          dout_struct(tmp_1.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 1, 0, 0, 0);
-          dout_struct(tmp_2.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 2, 0, 0, 0);
-          dout_struct(tmp_3.data[c_idx*(OROW+WS-1)*(OCOL+WS-1) + (x_idx+wx_idx)* (OCOL+WS-1) +  y_idx + wy_idx], 3, 0, 0, 0);
+          dout_struct(tmp_0.data[c_idx*(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1) + (STRIDE*x_idx+wx_idx)* (STRIDE*OCOL+WS-1) +  STRIDE*y_idx + wy_idx], 0, 0, 0, 0);
+          dout_struct(tmp_1.data[c_idx*(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1) + (STRIDE*x_idx+wx_idx)* (STRIDE*OCOL+WS-1) +  STRIDE*y_idx + wy_idx], 1, 0, 0, 0);
+          dout_struct(tmp_2.data[c_idx*(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1) + (STRIDE*x_idx+wx_idx)* (STRIDE*OCOL+WS-1) +  STRIDE*y_idx + wy_idx], 2, 0, 0, 0);
+          dout_struct(tmp_3.data[c_idx*(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1) + (STRIDE*x_idx+wx_idx)* (STRIDE*OCOL+WS-1) +  STRIDE*y_idx + wy_idx], 3, 0, 0, 0);
           dout.write(dout_struct);
 
      } // for y_idx
@@ -168,19 +168,19 @@ READ: for (int c_idx = 0; c_idx <C_TILE; c_idx++) {
 
 #pragma hls_design
 #pragma hls_pipeline_init_interval 1
-  template <typename DTYPE, int X_TILE, int OROW, int OCOL, int R_TILE, int K_TILE, int C_TILE, int WS>
+  template <typename DTYPE, int X_TILE, int OROW, int OCOL, int R_TILE, int K_TILE, int C_TILE, int WS, int STRIDE>
 void double_buffer_input(//DTYPE din[X_TILE * Y_TILE],DTYPE dout[X_TILE * Y_TILE], 
                          ac_channel<PackedStencil<DTYPE,R_TILE> > &din, 
                          ac_channel<PackedStencil<DTYPE, R_TILE,1,1> > &dout) {
 
     //static ac_channel<chanStruct<PackedStencil<DTYPE,R_TILE,1,1>,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem;//Static memory channel
-    static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_0;//Static memory channel
-    static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_1;//Static memory channel
-    static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_2;//Static memory channel
-    static ac_channel<chanStruct<DTYPE,(OROW+WS-1)*(OCOL+WS-1)*C_TILE> > shr_mem_3;//Static memory channel
+    static ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > shr_mem_0;//Static memory channel
+    static ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > shr_mem_1;//Static memory channel
+    static ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > shr_mem_2;//Static memory channel
+    static ac_channel<chanStruct<DTYPE,(STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1)*C_TILE> > shr_mem_3;//Static memory channel
 
-  WRITE_BLOCK_INPUT<DTYPE, R_TILE, (OROW+WS-1)*(OCOL+WS-1), C_TILE, WS>(din, shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3);
-  READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS>(shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3, dout);
+  WRITE_BLOCK_INPUT<DTYPE, R_TILE, (STRIDE*OROW+WS-1)*(STRIDE*OCOL+WS-1), C_TILE, WS>(din, shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3);
+  READ_BLOCK_INPUT<DTYPE, OROW, OCOL, R_TILE, K_TILE, C_TILE, WS, STRIDE>(shr_mem_0, shr_mem_1, shr_mem_2, shr_mem_3, dout);
 }
 
 #pragma hls_design

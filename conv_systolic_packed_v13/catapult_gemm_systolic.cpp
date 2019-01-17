@@ -215,7 +215,7 @@ void gemm(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
 
   static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_copy;
 
-  double_buffer_input<DTYPE, KI_NUM, OROW, OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input, input_copy);
+  double_buffer_input<DTYPE, KI_NUM, OROW, OCOL, CI_NUM, KO_NUM, CO_NUM, W_SIZE, STRIDE>(input, input_copy);
 
   static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_copy;
 

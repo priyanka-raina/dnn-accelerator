@@ -26,6 +26,7 @@
 //output image col
 #define OCOL        4  
 #define KII         2
+#define STRIDE      1
 
 typedef ac_int<16> DTYPE;
 

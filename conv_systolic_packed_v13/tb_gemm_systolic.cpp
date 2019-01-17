@@ -21,7 +21,7 @@ CCS_MAIN(int argc, char *argv[])
   
   //DTYPE input[CI_NUM][(OROW+W_SIZE-1)*(OCOL+W_SIZE-1)]; // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
   //DTYPE weight[CI_NUM][KI_NUM*KO_NUM]; // R_TILE=CI_NUM, X_TILE=KI_NUM
-  DTYPE input[(OROW+W_SIZE-1)][(OCOL+W_SIZE-1)][CI_NUM*CO_NUM]; // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
+  DTYPE input[(STRIDE*OROW+W_SIZE-1)][(STRIDE*OCOL+W_SIZE-1)][CI_NUM*CO_NUM]; // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
   DTYPE weight[W_SIZE][W_SIZE][CI_NUM*CO_NUM][KII*KI_NUM*KO_NUM]; // R_TILE=CI_NUM, X_TILE=KI_NUM
   DTYPE output_ref[OROW][OCOL][KII*KI_NUM*KO_NUM];
 
@@ -39,12 +39,12 @@ static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > output_stream;
   printf("Input\n");
 
  for (int c=0; c<CO_NUM; c++) {
-  for ( int p = 0; p < (OROW+W_SIZE-1); p++ ){
-   for ( int j = 0; j < (OCOL+W_SIZE-1); j++ ){
+  for ( int p = 0; p < (STRIDE*OROW+W_SIZE-1); p++ ){
+   for ( int j = 0; j < (STRIDE*OCOL+W_SIZE-1); j++ ){
     PackedStencil<DTYPE, CI_NUM> input_col;
     for ( int i = 0; i < CI_NUM; i++ ){
       //printf("inputting %d on index %d\n",j+1, i);
-      input[p][j][c*CI_NUM+i] = (DTYPE)rand(); //p*(OCOL+W_SIZE-1)+j+1;
+      input[p][j][c*CI_NUM+i] =  (DTYPE)rand(); //p*(OCOL+W_SIZE-1)+j+1;
       input_col(input[p][j][c*CI_NUM+i], i,0,0,0);
        //printf("%d\n", input[p][j][c*CI_NUM+i]);
       //input_stream.write(input[i][j]);
@@ -93,7 +93,7 @@ static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > output_stream;
            DTYPE out_value = output_col(jj, j);
            if((int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj] != (int)out_value) {
                errCnt++;
-               //printf("output[%d][%d][%d] = %d, ref = %d\n",p, i, k*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj]); 
+               printf("output[%d][%d][%d] = %d, ref = %d\n",p, i, k*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[p][i][k*KI_NUM*KII+j*KII+jj]); 
            }
           } 
         }

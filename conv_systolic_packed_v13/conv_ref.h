@@ -13,7 +13,7 @@
 #include "ac_int.h"
 
 #include "conv.h"
-void conv_ref( DTYPE input[(OROW+W_SIZE-1)][(OCOL+W_SIZE-1)][CI_NUM*CO_NUM], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
+void conv_ref( DTYPE input[(OROW*STRIDE+W_SIZE-1)][(OCOL*STRIDE+W_SIZE-1)][CI_NUM*CO_NUM], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
                DTYPE weight[W_SIZE][W_SIZE][CI_NUM*CO_NUM][KI_NUM*KO_NUM*KII], // R_TILE=CI_NUM, X_TILE=KI_NUM
                DTYPE output[OROW][OCOL][KI_NUM*KO_NUM*KII]);
 
