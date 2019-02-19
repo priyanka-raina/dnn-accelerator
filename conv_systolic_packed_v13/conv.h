@@ -15,21 +15,32 @@
 #include <ac_channel.h>
 #include "Stencil_catapult.h"
 
-#define KI_NUM     8 //4
-#define KO_NUM      2   //kernel number = KO_NUM * KI_NUM
-#define CI_NUM      8 //4   
-#define CO_NUM      2   //channle number = CO_NUM * CI_NUM
-//window width and height
-#define W_SIZE     3  
- //output image row
-#define OROW        4  //4
-//output image col
-#define OCOL        4 //4  
-#define KII         2
+// DO NOT CHANGE
+#define KI_NUM      4  //tiled kernel number, the inner loop size of kernel dimension, also one of the PE array demension
+#define CI_NUM      4  //tiled channel number, the inner loop size of channel dimension, also one of the PE array demension
+#define KII         2  //the innermost loop size of kernel dimension, also the loop iteration inside the PE array 
 
-typedef ac_int<16> DTYPE;
+// YOU CAN CHANGE BELOW
+#define K_NUM       64  //kernel number, KI_NUM must be a factor of K_NUM
+#define C_NUM       64  //channel number, CI_NUM must be a factor of C_NUM
 
-void gemm(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
+
+#define KO_NUM      K_NUM / KI_NUM / KII   //the outer loop size of kernel dimension, kernel number = KO_NUM * KI_NUM
+#define CO_NUM      C_NUM / CI_NUM         //the inner loop size of channel dimension, channle number = CO_NUM * CI_NUM
+
+#define W_SIZE      3   //window width or height (assume they are the same)
+#define OROW        28  //output image row
+#define OCOL        28  //output image col
+#define OROW_I      14  //tiled output image row, the inner loop size of row dimension, must be a factor of OROW  
+#define OCOL_I      14  //tiled output image col, the inner loop size of col dimension, must be a factpr pf OCOL
+
+#define OROW_O      OROW / OROW_I  //the outer loop size of row dimension
+#define OCOL_O      OCOL / OCOL_I  //the outer loop size of col dimension
+
+#define STRIDE      1
+typedef ac_int<16> DTYPE;  //define precision
+
+void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight, 
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output);
 
