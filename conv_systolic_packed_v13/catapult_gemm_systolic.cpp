@@ -228,8 +228,61 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
   static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_stream; 
   static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_stream;                     
 
+  static Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
+  static ac_channel< Params> params_stream_1;//(1, (Params){OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE});
+  static ac_channel< Params> params_stream_2;//(1, params);
+  static ac_channel< Params> params_stream_3;//(1, params);
+  static bool init = true;
+  if(init)
+  {
+ 
+      params_stream_1.write(params);
+      params_stream_2.write(params);
+      params_stream_3.write(params);
+      init = false;
+  }
 
-  double_buffer_input<DTYPE, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input, input_stream);
+
+  //double_buffer_input<DTYPE, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input, input_stream);
+  //alt_double_buffer_input<DTYPE, (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), CI_NUM >(input, input_stream, 
+                  //OROW_I,OCOL_I,OROW_O,OCOL_O,KO_NUM,CO_NUM,W_SIZE);
+  // double_buffer_input: {
+  //   #define INPUT_MEMORY(z,i,unused)\
+  //     static DTYPE BOOST_PP_CAT(channel_,i)[(OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1)];
+  //   REPEAT(INPUT_MEMORY)
+  //   static ac_channel<int> addresses;
+  //   static ac_channel<int> address_sizes;
+
+  //   static ac_channel<bool> readyToWrite;
+  //   static bool readyToRead;
+    
+  //   #define size (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1)
+  //   #define C_I CI_NUM
+  //   int num_blocks = OCOL_O*OROW_O*CO_NUM;
+  //   int block_size = (OCOL_I+W_SIZE-1)*(OROW_I+W_SIZE-1);
+  //   int inner_blocking = size/block_size; // how many blocks can fit in buffer
+  //   int outer_blocking = num_blocks/inner_blocking; 
+
+  //   address_generator_inputs<size, C_I>(OROW_I, OCOL_I, KO_NUM, W_SIZE, addresses, address_sizes, outer_blocking, inner_blocking, num_blocks);
+
+  //   #ifndef __SYNTHESIS__
+  //   while(input.available(1))
+  //   #endif
+  //   {
+  //   #define ALT_WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+  //     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(channel_, i)
+  //   //ALT_WRITE_BLOCK_INPUT<DTYPE, size, C_I>(block_size, num_blocks, inner_blocking, readyToRead, input, REPEAT(ALT_WRITE_BLOCK_INPUT_CALL_PARAMS) );
+  //   ALT_WRITE_BLOCK_INPUT<DTYPE, size, C_I>( input, REPEAT(ALT_WRITE_BLOCK_INPUT_CALL_PARAMS) );
+
+  //   #define ALT_READ_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+  //     BOOST_PP_CAT(channel_, i),
+  //   //ALT_READ_BLOCK_INPUT<DTYPE, size, C_I>(readyToWrite, readyToRead, addresses, address_sizes, REPEAT(ALT_READ_BLOCK_INPUT_CALL_PARAMS) input_stream);
+    
+  //   }
+  
+  // }
+
+  alt_double_buffer_input<DTYPE, (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), CI_NUM>(input, input_stream, params_stream_1, params_stream_2, params_stream_3);
 
   double_buffer_weights<DTYPE, KII, KI_NUM, OROW_I*OCOL_I, OROW_O*OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(weight, weight_stream);
 
