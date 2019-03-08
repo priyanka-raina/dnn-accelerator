@@ -163,7 +163,7 @@ void ALT_WRITE_BLOCK_INPUT(ac_channel<Params> &param_stream,
                       REPEAT(WRITE_BLOCK_INPUT_PARAMS)
                       ) {
 
-static Params p = param_stream.read();
+Params p = param_stream.read();
 int block_size = (p.X_I+p.WS-1)*(p.Y_I+p.WS-1);
 #pragma hls_pipeline_init_interval 1
   WRITE: for (int p_idx=0; p_idx < p.X_O*p.Y_O; p_idx++) {
@@ -200,7 +200,7 @@ void ALT_READ_BLOCK_INPUT(ac_channel<Params> &param_stream, ac_channel<int> &add
                      REPEAT(READ_BLOCK_INPUT_PARAMS)
                      ac_channel<PackedStencil<DTYPE, C_I,1,1> > &dout){
 
-static Params p = param_stream.read();
+Params p = param_stream.read();
 /*reuse the input pixels in the double buffer when iterating through different kernels
 and window locations*/
 #pragma hls_pipeline_init_interval 1
@@ -234,12 +234,12 @@ and window locations*/
 template<int size, int C_I>
 void address_generator_inputs(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
-  static Params params = params_stream.read();
+  Params params = params_stream.read();
 
-  static int total_blocks = params.X_O*params.Y_O*params.C_O;
-  static int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
-  static int inner_blocking = size/block_size; // how many blocks can fit in buffer
-  static int outer_blocking = total_blocks/inner_blocking;
+  int total_blocks = params.X_O*params.Y_O*params.C_O;
+  int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+  int inner_blocking = size/block_size; // how many blocks can fit in buffer
+  int outer_blocking = total_blocks/inner_blocking;
 
   for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
    int idx = 0;
@@ -265,34 +265,36 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
   }
 }
 
-#pragma hls_design block
-#pragma hls_pipeline_init_interval 1
-template <typename DTYPE, int size, int C_I>
-void alt_double_buffer_input( 
-                         ac_channel<PackedStencil<DTYPE,C_I> > &din, 
-                         ac_channel<PackedStencil<DTYPE, C_I,1,1> > &dout,
-                         ac_channel<Params> &params_stream_1,
-                         ac_channel<Params> &params_stream_2,
-                         ac_channel<Params> &params_stream_3) {
+// #pragma hls_design block
+// #pragma hls_pipeline_init_interval 1
+// template <typename DTYPE, int size, int C_I>
+// bool alt_double_buffer_input( 
+//                          ac_channel<PackedStencil<DTYPE,C_I> > &din, 
+//                          ac_channel<PackedStencil<DTYPE, C_I,1,1> > &dout,
+//                          ac_channel<Params> &params_stream_1,
+//                          ac_channel<Params> &params_stream_2,
+//                          ac_channel<Params> &params_stream_3) {
 
-  // Four banks of memorie, since the PE array is 4 x 4.
-  #define DOUBLE_BUFFER_INPUT_INIT(z,i,unused)\
-    static ac_channel<chanStruct<DTYPE,size> > BOOST_PP_CAT(shr_mem_,i);
-  REPEAT(DOUBLE_BUFFER_INPUT_INIT)
+//   // Four banks of memorie, since the PE array is 4 x 4.
+//   #define DOUBLE_BUFFER_INPUT_INIT(z,i,unused)\
+//     static ac_channel<chanStruct<DTYPE,size> > BOOST_PP_CAT(shr_mem_,i);
+//   REPEAT(DOUBLE_BUFFER_INPUT_INIT)
 
-  static ac_channel<int> addresses;
-  static ac_channel<int> address_sizes;
+//   static ac_channel<int> addresses;
+//   static ac_channel<int> address_sizes;
 
-  address_generator_inputs<size, C_I>(params_stream_1, addresses, address_sizes);
+//   address_generator_inputs<size, C_I>(params_stream_1, addresses, address_sizes);
 
-  #define WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
-    BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(shr_mem_, i)
-  ALT_WRITE_BLOCK_INPUT<DTYPE, size, C_I>(params_stream_2, din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
+//   #define WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+//     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(shr_mem_, i)
+//   ALT_WRITE_BLOCK_INPUT<DTYPE, size, C_I>(params_stream_2, din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
   
-  #define READ_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
-    BOOST_PP_CAT(shr_mem_, i),
-  ALT_READ_BLOCK_INPUT<DTYPE, size, C_I>( params_stream_3, addresses, address_sizes, REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) dout);
-}
+//   #define READ_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+//     BOOST_PP_CAT(shr_mem_, i),
+//   ALT_READ_BLOCK_INPUT<DTYPE, size, C_I>( params_stream_3, addresses, address_sizes, REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) dout);
+  
+//   return true;
+// }
 
 // #define ALT_WRITE_BLOCK_INPUT_PARAMS(z, i, unused)\
 //   BOOST_PP_COMMA_IF(i) DTYPE BOOST_PP_CAT(dout_,i)[size]
@@ -458,7 +460,7 @@ void WRITE_BLOCK_WEIGHTS(ac_channel<Params> &params_stream,
                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &din,
                          REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)) {
 
-static Params params = params_stream.read();
+Params params = params_stream.read();
 int block_size = params.C_I*params.K_O*params.C_O*params.WS*params.WS;                             
 #pragma hls_pipeline_init_interval 1
   WRITE: for(int p_idx = 0; p_idx < params.X_O*params.Y_O; p_idx++) {
@@ -512,7 +514,7 @@ void READ_BLOCK_WEIGHTS(ac_channel<Params> &param_stream,
                         REPEAT(READ_BLOCK_WEIGHTS_PARAMS)
                         ac_channel<PackedStencil<DTYPE, KI, K_I,1,1> > &dout){
 
-static Params params = param_stream.read();
+Params params = param_stream.read();
 //reuse the weights in the double buffer when looping through different image tiles.
 #pragma hls_pipeline_init_interval 1
   READ: for(int p_idx = 0; p_idx < params.X_O*params.Y_O; p_idx++) {
@@ -555,12 +557,12 @@ static Params params = param_stream.read();
 template<int size>
 void  address_generator_weights(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
-  static Params params = params_stream.read();
+  Params params = params_stream.read();
 
-  static int total_blocks = params.X_O * params.Y_O;
-  static int block_size = params.C_I*params.K_O*params.C_O*params.WS*params.WS;
-  static int inner_blocking = size / block_size;
-  static int outer_blocking = total_blocks / inner_blocking;
+  int total_blocks = params.X_O * params.Y_O;
+  int block_size = params.C_I*params.K_O*params.C_O*params.WS*params.WS;
+  int inner_blocking = size / block_size;
+  int outer_blocking = total_blocks / inner_blocking;
 
   for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
    int idx = 0;
@@ -602,35 +604,37 @@ Inputs and outputs are a stream of PackedStencil of coefficients..
 PackedStencil is a data struct that pack multiple elements into a long word to
 increase the port width and bandwidth.
 */
-#pragma hls_design
-#pragma hls_pipeline_init_interval 1
-template <typename DTYPE, int size, int KI, int K_I>
-  void double_buffer_weights(ac_channel<PackedStencil<DTYPE, KI, K_I> > &din, 
-                             ac_channel<PackedStencil<DTYPE, KI, K_I> > &dout,
-                             ac_channel<Params> &params_stream_1,
-                             ac_channel<Params> &params_stream_2,
-                             ac_channel<Params> &params_stream_3) {
+// #pragma hls_design
+// #pragma hls_pipeline_init_interval 1
+// template <typename DTYPE, int size, int KI, int K_I>
+//   bool double_buffer_weights(ac_channel<PackedStencil<DTYPE, KI, K_I> > &din, 
+//                              ac_channel<PackedStencil<DTYPE, KI, K_I> > &dout,
+//                              ac_channel<Params> &params_stream_1,
+//                              ac_channel<Params> &params_stream_2,
+//                              ac_channel<Params> &params_stream_3) {
 
-  // Four banks of memorie, since the PE array is 4 x 4.
-  #define DOUBLE_BUFFER_WEIGHT_INIT(z,i,unused)\
-    static ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1,1,1>, size> > BOOST_PP_CAT(shr_mem_,i);
-  REPEAT(DOUBLE_BUFFER_WEIGHT_INIT)
+//   // Four banks of memorie, since the PE array is 4 x 4.
+//   #define DOUBLE_BUFFER_WEIGHT_INIT(z,i,unused)\
+//     static ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1,1,1>, size> > BOOST_PP_CAT(shr_mem_,i);
+//   REPEAT(DOUBLE_BUFFER_WEIGHT_INIT)
 
-  static ac_channel<int> addresses;
-  static ac_channel<int> address_sizes;
+//   static ac_channel<int> addresses;
+//   static ac_channel<int> address_sizes;
 
-  address_generator_weights<size>(params_stream_1, addresses, address_sizes);
+//   address_generator_weights<size>(params_stream_1, addresses, address_sizes);
 
-  #define WRITE_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
-    BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(shr_mem_, i)
-  // WRITE_BLOCK_WEIGHTS<DTYPE, KI, C_I, K_I, XY_O, K_O, C_O, WS>(din, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
-  WRITE_BLOCK_WEIGHTS<DTYPE, size, KI, K_I>(params_stream_2, din, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
+//   #define WRITE_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
+//     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(shr_mem_, i)
+//   // WRITE_BLOCK_WEIGHTS<DTYPE, KI, C_I, K_I, XY_O, K_O, C_O, WS>(din, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
+//   WRITE_BLOCK_WEIGHTS<DTYPE, size, KI, K_I>(params_stream_2, din, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
   
-  #define READ_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
-    BOOST_PP_CAT(shr_mem_, i) ,
-  // READ_BLOCK_WEIGHTS<DTYPE, KI, K_I, XY_I, XY_O, C_I, K_O, C_O, WS>( REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) dout);
-  READ_BLOCK_WEIGHTS<DTYPE, size, KI, K_I>(params_stream_3, addresses, address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) dout);
-}
+//   #define READ_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
+//     BOOST_PP_CAT(shr_mem_, i) ,
+//   // READ_BLOCK_WEIGHTS<DTYPE, KI, K_I, XY_I, XY_O, C_I, K_O, C_O, WS>( REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) dout);
+//   READ_BLOCK_WEIGHTS<DTYPE, size, KI, K_I>(params_stream_3, addresses, address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) dout);
+  
+//   return true;
+// }
 
 
 // #define WRITE_BLOCK_WEIGHT_PARAMS(z,i,unused)\
@@ -736,3 +740,55 @@ template <typename DTYPE, int size, int KI, int K_I>
 //     BOOST_PP_CAT(shr_mem_, i) ,
 //   READ_BLOCK_WEIGHTS<DTYPE, KI, K_I, XY_I, XY_O, C_I, K_O, C_O, WS>( REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) dout);
 // }
+
+#pragma hls_design block
+#pragma hls_pipeline_init_interval 1
+template <typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K_I>
+void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din, 
+                      ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
+                      ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
+                      ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out,
+                      ac_channel<Params> &params_stream_1,
+                      ac_channel<Params> &params_stream_2,
+                      ac_channel<Params> &params_stream_3,
+                      ac_channel<Params> &params_stream_4,
+                      ac_channel<Params> &params_stream_5,
+                      ac_channel<Params> &params_stream_6){
+  // input banks
+  #define DOUBLE_BUFFER_INPUT_INIT(z,i,unused)\
+    static ac_channel<chanStruct<DTYPE,input_size> > BOOST_PP_CAT(inputs_shr_mem_,i);
+  REPEAT(DOUBLE_BUFFER_INPUT_INIT)
+
+  // weight banks
+  #define DOUBLE_BUFFER_WEIGHT_INIT(z,i,unused)\
+    static ac_channel<chanStruct<PackedStencil<DTYPE, KI>, weight_size> > BOOST_PP_CAT(weights_shr_mem_,i);
+  REPEAT(DOUBLE_BUFFER_WEIGHT_INIT)
+
+  // input address generator
+  static ac_channel<int> inputs_addresses;
+  static ac_channel<int> inputs_address_sizes;
+  address_generator_inputs<input_size, C_I>(params_stream_1, inputs_addresses, inputs_address_sizes);
+
+  // weight address generator
+  static ac_channel<int> weights_addresses;
+  static ac_channel<int> weights_address_sizes;
+  address_generator_weights<weight_size>(params_stream_2, weights_addresses, weights_address_sizes);
+
+  // Inputs write + read
+  #define WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+    BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(inputs_shr_mem_, i)
+  ALT_WRITE_BLOCK_INPUT<DTYPE, input_size, C_I>(params_stream_3, inputs_din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
+
+  #define READ_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
+    BOOST_PP_CAT(inputs_shr_mem_, i),
+  ALT_READ_BLOCK_INPUT<DTYPE, input_size, C_I>( params_stream_4, inputs_addresses, inputs_address_sizes, REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) inputs_out);
+
+  // Weights write + read
+  #define WRITE_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
+    BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(weights_shr_mem_, i)
+  WRITE_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_5, weights_in, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
+  
+  #define READ_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
+    BOOST_PP_CAT(weights_shr_mem_, i) ,
+  READ_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_6, weights_addresses, weights_address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) weights_out);
+}

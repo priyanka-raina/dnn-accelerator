@@ -42,7 +42,7 @@ The input and output of systolic array are streams of input, weight and output.
 #pragma hls_design 
 #pragma hls_pipeline_init_interval 1
 template<typename DTYPE, int K_II, int K_I, int Y_I, int X_I, int Y_O, int X_O, int C_I, int K_O, int C_O, int WS>
-void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input, 
+bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input, 
                     ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &weight, 
                     ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &output) {
 
@@ -208,10 +208,11 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
     } //WS
     } //C_O
     } //XY_O
+    return true;
 }
 
 #pragma hls_design block
-void params_generator(ac_channel<Params> &params_stream_1,
+bool params_generator(ac_channel<Params> &params_stream_1,
                       ac_channel<Params> &params_stream_2,
                       ac_channel<Params> &params_stream_3,
                       ac_channel<Params> &params_stream_4,
@@ -224,6 +225,7 @@ void params_generator(ac_channel<Params> &params_stream_1,
                         params_stream_4.write(params);
                         params_stream_5.write(params);
                         params_stream_6.write(params);
+                        return true;
                     }
 
 /*
@@ -253,11 +255,7 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
   
   params_generator(params_stream_1, params_stream_2, params_stream_3, params_stream_4, params_stream_5, params_stream_6);
 
-  alt_double_buffer_input<DTYPE, (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), CI_NUM>(input, input_stream, params_stream_1, params_stream_2, params_stream_3);
-
-  double_buffer_weights<DTYPE, (CI_NUM*KO_NUM*CO_NUM*W_SIZE*W_SIZE), KII, KI_NUM>(weight, weight_stream, params_stream_4, params_stream_5, params_stream_6);
-  // double_buffer_weights<DTYPE, KII, KI_NUM, OROW_I*OCOL_I, OROW_O*OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(weight, weight_stream);
+  unified_double_buffer<DTYPE, (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), (CI_NUM*KO_NUM*CO_NUM*W_SIZE*W_SIZE), CI_NUM, KII, KI_NUM>(input, input_stream, weight, weight_stream, params_stream_1,params_stream_2,params_stream_3,params_stream_4,params_stream_5,params_stream_6);
 
   systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input_stream, weight_stream, output);
- 
 }
