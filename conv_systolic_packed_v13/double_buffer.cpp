@@ -792,3 +792,59 @@ void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din,
     BOOST_PP_CAT(weights_shr_mem_, i) ,
   READ_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_6, weights_addresses, weights_address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) weights_out);
 }
+
+template<typename DTYPE, int size>
+void WRITE_HIERARCHICAL_BUFFER(ac_channel<DTYPE> &din, 
+                          ac_channel<chanStruct<DTYPE, size> > &shr_mem,
+                          ac_channel<int> &sizes){
+  #ifndef __SYNTHESIS__
+  while(din.available(1))
+  #endif
+  {
+    chanStruct<DTYPE, size> tmp;
+    int idx = 0;
+    while(idx < size && din.available(1)){
+      tmp.data[idx++] = din.read();
+    }
+    shr_mem.write(tmp);
+    sizes.write(idx);
+  }
+}
+
+template<typename DTYPE, int size>
+void READ_HIERARCHICAL_BUFFER(ac_channel<chanStruct<DTYPE, size> > &shr_mem,
+                         ac_channel<int> &sizes,
+                         ac_channel<DTYPE> &dout){
+  #ifndef __SYNTHESIS__
+  while(sizes.available(1))
+  #endif
+  {
+    int max_size = sizes.read();
+    chanStruct<DTYPE, size> tmp = shr_mem.read();
+    for(int i = 0; i < max_size; i++){
+      dout.write(tmp.data[i]);
+    }
+  }
+}
+
+/** Hierarchical Buffer **/
+template<typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K_I>
+void hierarchical_buffer( ac_channel<PackedStencil<DTYPE, C_I> > &inputs_in, 
+                          ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
+                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
+                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out){
+  
+  // Inputs
+  static ac_channel<chanStruct<PackedStencil<DTYPE, C_I>, input_size> > inputs_shr_mem;
+  static ac_channel<int> inputs_size;
+
+  // Weights
+  static ac_channel<chanStruct<PackedStencil<DTYPE, KI, K_I>, weight_size> > weights_shr_mem;
+  static ac_channel<int> weights_size;
+
+  WRITE_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_in, inputs_shr_mem, inputs_size);
+  READ_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_shr_mem, inputs_size, inputs_out);
+
+  WRITE_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, KI, K_I>, weight_size>(weights_in, weights_shr_mem, weights_size);
+  READ_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, KI, K_I>, weight_size>(weights_shr_mem, weights_size, weights_out);
+}

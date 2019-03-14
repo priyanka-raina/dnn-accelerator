@@ -13,6 +13,15 @@
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
+#include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/comparison/not_equal.hpp>
+#include <boost/preprocessor/repetition/for.hpp>
+#include <boost/preprocessor/tuple/elem.hpp>
+#include <boost/preprocessor/tuple/size.hpp>
+#include <boost/preprocessor/control/if.hpp>
+#include <boost/preprocessor/punctuation/comma.hpp>
+#include <boost/preprocessor/arithmetic/dec.hpp>
+
 
 #define ARRAY_DIMENSION 4
 #define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
@@ -239,12 +248,43 @@ Output data are accumulated inside systolic array, and streamed out.
 
 #pragma hls_design top
 #pragma hls_pipeline_init_interval 1
-void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input, 
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight, 
+void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0, 
+          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight0, 
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output) {
-   
-  static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_stream; 
-  static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_stream;                     
+  
+  // Macros used for for-loop 
+  #define PRED(r, state) \
+    BOOST_PP_NOT_EQUAL( \
+      BOOST_PP_TUPLE_ELEM(2, 0, state), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+    ) \
+
+  #define OP(r, state) \
+  ( \
+      BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2, 0, state)), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+  ) \
+
+
+  #define MACRO_INPUT_INIT(r, state)\
+    static ac_channel<PackedStencil<DTYPE, CI_NUM> > BOOST_PP_CAT(input, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
+    static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > BOOST_PP_CAT(weight, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state)));
+  BOOST_PP_FOR((0, BUFFER_LEVELS), PRED, OP, MACRO_INPUT_INIT)
+
+  #define MACRO_BUFFER(r,state)\
+    hierarchical_buffer<DTYPE,\
+                        BOOST_PP_TUPLE_ELEM(BUFFER_LEVELS, BOOST_PP_TUPLE_ELEM(2,0,state), BUFFER_SIZES),\
+                        BOOST_PP_TUPLE_ELEM(BUFFER_LEVELS, BOOST_PP_TUPLE_ELEM(2,0,state), BUFFER_SIZES),\
+                        CI_NUM, KII, KI_NUM >\
+                        ( BOOST_PP_CAT(input, BOOST_PP_DEC(BOOST_PP_TUPLE_ELEM(2,0,state))),\
+                          BOOST_PP_CAT(input, BOOST_PP_TUPLE_ELEM(2,0,state)),\
+                          BOOST_PP_CAT(weight, BOOST_PP_DEC(BOOST_PP_TUPLE_ELEM(2,0,state))),\
+                          BOOST_PP_CAT(weight, BOOST_PP_TUPLE_ELEM(2,0,state)) );
+  BOOST_PP_FOR((1, BUFFER_LEVELS), PRED, OP, MACRO_BUFFER)
+
+
+  // static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_stream; 
+  // static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_stream;                     
 
   static ac_channel< Params> params_stream_1;
   static ac_channel< Params> params_stream_2;
@@ -255,7 +295,18 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
   
   params_generator(params_stream_1, params_stream_2, params_stream_3, params_stream_4, params_stream_5, params_stream_6);
 
-  unified_double_buffer<DTYPE, (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), (CI_NUM*KO_NUM*CO_NUM*W_SIZE*W_SIZE), CI_NUM, KII, KI_NUM>(input, input_stream, weight, weight_stream, params_stream_1,params_stream_2,params_stream_3,params_stream_4,params_stream_5,params_stream_6);
+  unified_double_buffer<DTYPE, 
+                        (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
+                        (CI_NUM*KO_NUM*CO_NUM*W_SIZE*W_SIZE),
+                        CI_NUM, KII, KI_NUM>
+                        ( BOOST_PP_CAT(input, BOOST_PP_DEC(BUFFER_LEVELS)),
+                          BOOST_PP_CAT(input, BUFFER_LEVELS),
+                          BOOST_PP_CAT(weight, BOOST_PP_DEC(BUFFER_LEVELS)),
+                          BOOST_PP_CAT(weight, BUFFER_LEVELS),
+                          params_stream_1,params_stream_2,params_stream_3,params_stream_4,params_stream_5,params_stream_6 );
 
-  systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>(input_stream, weight_stream, output);
+  systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>
+                ( BOOST_PP_CAT(input, BUFFER_LEVELS),
+                  BOOST_PP_CAT(weight, BUFFER_LEVELS),
+                  output);
 }

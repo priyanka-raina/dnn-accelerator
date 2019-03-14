@@ -38,6 +38,11 @@
 #define OCOL_O      OCOL / OCOL_I  //the outer loop size of col dimension
 
 #define STRIDE      1
+
+// Memory Hierarchy
+#define BUFFER_LEVELS 2
+#define BUFFER_SIZES (1, 2) // Ordered from first level to last level
+
 typedef ac_int<16> DTYPE;  //define precision
 
 void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
