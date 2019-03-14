@@ -281,10 +281,7 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
                           BOOST_PP_CAT(weight, BOOST_PP_DEC(BOOST_PP_TUPLE_ELEM(2,0,state))),\
                           BOOST_PP_CAT(weight, BOOST_PP_TUPLE_ELEM(2,0,state)) );
   BOOST_PP_FOR((1, BUFFER_LEVELS), PRED, OP, MACRO_BUFFER)
-
-
-  // static ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > input_stream; 
-  // static ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1> > weight_stream;                     
+                  
 
   static ac_channel< Params> params_stream_1;
   static ac_channel< Params> params_stream_2;
