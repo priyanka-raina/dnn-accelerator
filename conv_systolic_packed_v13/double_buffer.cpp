@@ -273,6 +273,30 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
   }
 }
 
+void params_duplicator(ac_channel<Params> &params_stream, 
+                      ac_channel<Params> &params_stream_address_generator_inputs, 
+                      ac_channel<Params> &params_stream_address_generator_weights,
+                      ac_channel<Params> &params_stream_write_input,
+                      ac_channel<Params> &params_stream_read_input,
+                      ac_channel<Params> &params_stream_write_weight,
+                      ac_channel<Params> &params_stream_read_weight){
+                        
+                        #ifndef __SYNTHESIS__
+                        while(params_stream.available(1))
+                        #endif
+                        {
+                        Params p = params_stream.read();
+
+                        params_stream_address_generator_inputs.write(p);
+                        params_stream_address_generator_weights.write(p);
+                        params_stream_write_input.write(p);
+                        params_stream_read_input.write(p);
+                        params_stream_write_weight.write(p);
+                        params_stream_read_weight.write(p);
+                        }
+
+                      }
+
 #pragma hls_design block
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K_I>
@@ -280,12 +304,7 @@ void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din,
                       ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
                       ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
                       ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out,
-                      ac_channel<Params> &params_stream_1,
-                      ac_channel<Params> &params_stream_2,
-                      ac_channel<Params> &params_stream_3,
-                      ac_channel<Params> &params_stream_4,
-                      ac_channel<Params> &params_stream_5,
-                      ac_channel<Params> &params_stream_6){
+                      ac_channel<Params> &params_stream){
   // input banks
   #define DOUBLE_BUFFER_INPUT_INIT(z,i,unused)\
     static ac_channel<chanStruct<DTYPE,input_size> > BOOST_PP_CAT(inputs_shr_mem_,i);
@@ -296,33 +315,48 @@ void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din,
     static ac_channel<chanStruct<PackedStencil<DTYPE, KI>, weight_size> > BOOST_PP_CAT(weights_shr_mem_,i);
   REPEAT(DOUBLE_BUFFER_WEIGHT_INIT)
 
+  static ac_channel<Params> params_stream_address_generator_inputs;
+  static ac_channel<Params> params_stream_address_generator_weights;
+  static ac_channel<Params> params_stream_write_input;
+  static ac_channel<Params> params_stream_read_input;
+  static ac_channel<Params> params_stream_write_weight;
+  static ac_channel<Params> params_stream_read_weight;
+
+  params_duplicator(params_stream, 
+                    params_stream_address_generator_inputs, 
+                    params_stream_address_generator_weights,
+                    params_stream_write_input,
+                    params_stream_read_input,
+                    params_stream_write_weight,
+                    params_stream_read_weight);
+
   // input address generator
   static ac_channel<int> inputs_addresses;
   static ac_channel<int> inputs_address_sizes;
-  address_generator_inputs<input_size, C_I>(params_stream_1, inputs_addresses, inputs_address_sizes);
+  address_generator_inputs<input_size, C_I>(params_stream_address_generator_inputs, inputs_addresses, inputs_address_sizes);
 
   // weight address generator
   static ac_channel<int> weights_addresses;
   static ac_channel<int> weights_address_sizes;
-  address_generator_weights<weight_size>(params_stream_2, weights_addresses, weights_address_sizes);
+  address_generator_weights<weight_size>(params_stream_address_generator_weights, weights_addresses, weights_address_sizes);
 
   // Inputs write + read
   #define WRITE_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(inputs_shr_mem_, i)
-  ALT_WRITE_BLOCK_INPUT<DTYPE, input_size, C_I>(params_stream_3, inputs_din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
+  ALT_WRITE_BLOCK_INPUT<DTYPE, input_size, C_I>(params_stream_write_input, inputs_din, REPEAT(WRITE_BLOCK_INPUT_CALL_PARAMS) );
 
   #define READ_BLOCK_INPUT_CALL_PARAMS(z,i,unused)\
     BOOST_PP_CAT(inputs_shr_mem_, i),
-  ALT_READ_BLOCK_INPUT<DTYPE, input_size, C_I>( params_stream_4, inputs_addresses, inputs_address_sizes, REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) inputs_out);
+  ALT_READ_BLOCK_INPUT<DTYPE, input_size, C_I>(params_stream_read_input, inputs_addresses, inputs_address_sizes, REPEAT(READ_BLOCK_INPUT_CALL_PARAMS) inputs_out);
 
   // Weights write + read
   #define WRITE_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
     BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(weights_shr_mem_, i)
-  WRITE_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_5, weights_in, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
+  WRITE_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_write_weight, weights_in, REPEAT(WRITE_BLOCK_WEIGHTS_CALL_PARAMS) );
   
   #define READ_BLOCK_WEIGHTS_CALL_PARAMS(z,i,unused)\
     BOOST_PP_CAT(weights_shr_mem_, i) ,
-  READ_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_6, weights_addresses, weights_address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) weights_out);
+  READ_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_read_weight, weights_addresses, weights_address_sizes, REPEAT(READ_BLOCK_WEIGHTS_CALL_PARAMS) weights_out);
 }
 
 template<typename DTYPE, int size>
@@ -364,7 +398,8 @@ template<typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K
 void hierarchical_buffer( ac_channel<PackedStencil<DTYPE, C_I> > &inputs_in, 
                           ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
                           ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
-                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out){
+                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out,
+                          ac_channel<Params> &params_stream){
   
   // Inputs
   static ac_channel<chanStruct<PackedStencil<DTYPE, C_I>, input_size> > inputs_shr_mem;
@@ -373,6 +408,21 @@ void hierarchical_buffer( ac_channel<PackedStencil<DTYPE, C_I> > &inputs_in,
   // Weights
   static ac_channel<chanStruct<PackedStencil<DTYPE, KI, K_I>, weight_size> > weights_shr_mem;
   static ac_channel<int> weights_size;
+
+  static ac_channel<Params> params_stream_address_generator_inputs;
+  static ac_channel<Params> params_stream_address_generator_weights;
+  static ac_channel<Params> params_stream_write_input;
+  static ac_channel<Params> params_stream_read_input;
+  static ac_channel<Params> params_stream_write_weight;
+  static ac_channel<Params> params_stream_read_weight;
+
+  params_duplicator(params_stream, 
+                    params_stream_address_generator_inputs, 
+                    params_stream_address_generator_weights,
+                    params_stream_write_input,
+                    params_stream_read_input,
+                    params_stream_write_weight,
+                    params_stream_read_weight);
 
   WRITE_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_in, inputs_shr_mem, inputs_size);
   READ_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_shr_mem, inputs_size, inputs_out);

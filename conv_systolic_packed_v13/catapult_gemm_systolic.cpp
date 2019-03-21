@@ -220,22 +220,48 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
     return true;
 }
 
+
+  // Macros used for for-loop 
+  #define PRED(r, state) \
+    BOOST_PP_NOT_EQUAL( \
+      BOOST_PP_TUPLE_ELEM(2, 0, state), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+    ) \
+
+  #define OP(r, state) \
+  ( \
+      BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2, 0, state)), \
+      BOOST_PP_TUPLE_ELEM(2, 1, state) \
+  ) \
+
+#define PARAMS_STREAM_GENERATOR(r,state)\
+  BOOST_PP_COMMA_IF( BOOST_PP_TUPLE_ELEM(2,0,state) ) ac_channel<Params> &BOOST_PP_CAT(params_level_, BOOST_PP_TUPLE_ELEM(2,0,state))
+
+// Read in main stream and split into two for each buffer
 #pragma hls_design block
-bool params_generator(ac_channel<Params> &params_stream_1,
-                      ac_channel<Params> &params_stream_2,
-                      ac_channel<Params> &params_stream_3,
-                      ac_channel<Params> &params_stream_4,
-                      ac_channel<Params> &params_stream_5,
-                      ac_channel<Params> &params_stream_6){
-                        Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
-                        params_stream_1.write(params);
-                        params_stream_2.write(params);
-                        params_stream_3.write(params);
-                        params_stream_4.write(params);
-                        params_stream_5.write(params);
-                        params_stream_6.write(params);
-                        return true;
-                    }
+void params_generator(ac_channel<Params> &main_params_stream,
+          BOOST_PP_FOR( (0, BUFFER_LEVELS), PRED, OP, PARAMS_STREAM_GENERATOR) ){
+            #define READ_WRITE_PARAMS(r,state)\
+              BOOST_PP_CAT(params_level_, BOOST_PP_TUPLE_ELEM(2,0,state)).write(main_params_stream.read());
+            BOOST_PP_FOR( (0,BUFFER_LEVELS), PRED, OP, READ_WRITE_PARAMS)
+          }
+
+// #pragma hls_design block
+// bool params_generator_old(ac_channel<Params> &params_stream_1,
+//                       ac_channel<Params> &params_stream_2,
+//                       ac_channel<Params> &params_stream_3,
+//                       ac_channel<Params> &params_stream_4,
+//                       ac_channel<Params> &params_stream_5,
+//                       ac_channel<Params> &params_stream_6){
+//                         Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
+//                         params_stream_1.write(params);
+//                         params_stream_2.write(params);
+//                         params_stream_3.write(params);
+//                         params_stream_4.write(params);
+//                         params_stream_5.write(params);
+//                         params_stream_6.write(params);
+//                         return true;
+//                     }
 
 /*
 The top level design.
@@ -250,26 +276,21 @@ Output data are accumulated inside systolic array, and streamed out.
 #pragma hls_pipeline_init_interval 1
 void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0, 
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight0, 
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output) {
-  
-  // Macros used for for-loop 
-  #define PRED(r, state) \
-    BOOST_PP_NOT_EQUAL( \
-      BOOST_PP_TUPLE_ELEM(2, 0, state), \
-      BOOST_PP_TUPLE_ELEM(2, 1, state) \
-    ) \
-
-  #define OP(r, state) \
-  ( \
-      BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2, 0, state)), \
-      BOOST_PP_TUPLE_ELEM(2, 1, state) \
-  ) \
+          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output,
+          ac_channel<Params> &params_stream) {
 
 
   #define MACRO_INPUT_INIT(r, state)\
     static ac_channel<PackedStencil<DTYPE, CI_NUM> > BOOST_PP_CAT(input, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
-    static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > BOOST_PP_CAT(weight, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state)));
+    static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > BOOST_PP_CAT(weight, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
+    static ac_channel<Params> BOOST_PP_CAT(params_stream_level_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state)));
+
   BOOST_PP_FOR((0, BUFFER_LEVELS), PRED, OP, MACRO_INPUT_INIT)
+
+  #define PARAMS_INIT(z,i,unused)\
+    BOOST_PP_COMMA_IF(i) BOOST_PP_CAT(params_stream_level_, BOOST_PP_INC(i) )
+
+  params_generator(params_stream, BOOST_PP_REPEAT(BUFFER_LEVELS, PARAMS_INIT, 0));
 
   #define MACRO_BUFFER(r,state)\
     hierarchical_buffer<DTYPE,\
@@ -279,18 +300,19 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
                         ( BOOST_PP_CAT(input, BOOST_PP_DEC(BOOST_PP_TUPLE_ELEM(2,0,state))),\
                           BOOST_PP_CAT(input, BOOST_PP_TUPLE_ELEM(2,0,state)),\
                           BOOST_PP_CAT(weight, BOOST_PP_DEC(BOOST_PP_TUPLE_ELEM(2,0,state))),\
-                          BOOST_PP_CAT(weight, BOOST_PP_TUPLE_ELEM(2,0,state)) );
+                          BOOST_PP_CAT(weight, BOOST_PP_TUPLE_ELEM(2,0,state)),\
+                          BOOST_PP_CAT(params_stream_level_, BOOST_PP_TUPLE_ELEM(2,0,state) ) );
   BOOST_PP_FOR((1, BUFFER_LEVELS), PRED, OP, MACRO_BUFFER)
                   
 
-  static ac_channel< Params> params_stream_1;
-  static ac_channel< Params> params_stream_2;
-  static ac_channel< Params> params_stream_3;
-  static ac_channel< Params> params_stream_4;
-  static ac_channel< Params> params_stream_5;
-  static ac_channel< Params> params_stream_6;
+  // static ac_channel< Params> params_stream_1;
+  // static ac_channel< Params> params_stream_2;
+  // static ac_channel< Params> params_stream_3;
+  // static ac_channel< Params> params_stream_4;
+  // static ac_channel< Params> params_stream_5;
+  // static ac_channel< Params> params_stream_6;
   
-  params_generator(params_stream_1, params_stream_2, params_stream_3, params_stream_4, params_stream_5, params_stream_6);
+  // params_generator(params_stream_1, params_stream_2, params_stream_3, params_stream_4, params_stream_5, params_stream_6);
 
   unified_double_buffer<DTYPE, 
                         (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
@@ -300,7 +322,7 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
                           BOOST_PP_CAT(input, BUFFER_LEVELS),
                           BOOST_PP_CAT(weight, BOOST_PP_DEC(BUFFER_LEVELS)),
                           BOOST_PP_CAT(weight, BUFFER_LEVELS),
-                          params_stream_1,params_stream_2,params_stream_3,params_stream_4,params_stream_5,params_stream_6 );
+                          BOOST_PP_CAT(params_stream_level_, BUFFER_LEVELS) );
 
   systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>
                 ( BOOST_PP_CAT(input, BUFFER_LEVELS),

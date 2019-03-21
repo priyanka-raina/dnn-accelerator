@@ -14,6 +14,18 @@
 #include <mc_scverify.h>
 #include "conv.h"
 
+ typedef struct {
+   int Y_O;
+   int X_O;
+   int Y_I;
+   int X_I;
+   int K_I;
+   int K_O;
+   int C_I;
+   int C_O;
+   int WS;
+ } Params;
+
 #define DEBUG
 
 CCS_MAIN(int argc, char *argv[]) 
@@ -96,9 +108,13 @@ CCS_MAIN(int argc, char *argv[])
 
     printf("finished weights\n");
 
+    ac_channel<Params> params_stream;
+    Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
+    params_stream.write(params);
+
     // Main function call
     // launch hardware design
-    CCS_DESIGN(conv)(input_stream,weight_stream,output_stream);
+    CCS_DESIGN(conv)(input_stream,weight_stream,output_stream, params_stream);
     // run reference model
     conv_ref(input, weight, output_ref);          
 
