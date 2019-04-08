@@ -2,13 +2,11 @@
 #include "ac_channel.h"
 #include "Stencil_catapult.h"
 #include "params.h"
+#include "array_dimensions.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
-
-#define ARRAY_DIMENSION 4
-#define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
 template<typename T, int N>
 struct chanStruct{
@@ -263,6 +261,8 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
   }
 }
 
+
+#pragma hls_design block
 void params_duplicator(ac_channel<Params> &params_stream, 
                       ac_channel<Params> &params_stream_address_generator_inputs, 
                       ac_channel<Params> &params_stream_address_generator_weights,

@@ -9,6 +9,7 @@
 // feedback path too long
 #include "double_buffer.cpp"
 #include "conv.h"
+#include "array_dimensions.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
@@ -21,10 +22,6 @@
 #include <boost/preprocessor/control/if.hpp>
 #include <boost/preprocessor/punctuation/comma.hpp>
 #include <boost/preprocessor/arithmetic/dec.hpp>
-
-
-#define ARRAY_DIMENSION 4
-#define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
 template<typename DTYPE, int KI>
 class pe_template{
@@ -218,6 +215,10 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
     } //C_O
     } //XY_O
     return true;
+}
+
+void active_mask_generator(ac_channel<Params> &params){
+  int num_iterations = ceil();
 }
 
 

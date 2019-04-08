@@ -15,10 +15,11 @@
 #include <ac_channel.h>
 #include "Stencil_catapult.h"
 #include "params.h"
+#include "array_dimensions.h"
 
 // DO NOT CHANGE
-#define KI_NUM      4  //tiled kernel number, the inner loop size of kernel dimension, also one of the PE array demension
-#define CI_NUM      4  //tiled channel number, the inner loop size of channel dimension, also one of the PE array demension
+#define KI_NUM      ARRAY_DIMENSION  //tiled kernel number, the inner loop size of kernel dimension, also one of the PE array demension
+#define CI_NUM      ARRAY_DIMENSION  //tiled channel number, the inner loop size of channel dimension, also one of the PE array demension
 #define KII         2  //the innermost loop size of kernel dimension, also the loop iteration inside the PE array 
 
 // YOU CAN CHANGE BELOW
@@ -44,7 +45,9 @@
 #define BUFFER_LEVELS 1
 #define BUFFER_SIZES (1, 2) // Ordered from first level to last level
 
-typedef ac_int<16> DTYPE;  //define precision
+#define PRECISION 16
+
+typedef ac_int<PRECISION> DTYPE; 
 
 void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
           ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight, 
