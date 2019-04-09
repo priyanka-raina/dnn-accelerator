@@ -47,7 +47,7 @@ The input and output of systolic array are streams of input, weight and output.
 */
 #pragma hls_design 
 #pragma hls_pipeline_init_interval 1
-template<typename DTYPE, int K_II, int K_I, int Y_I, int X_I, int Y_O, int X_O, int C_I, int K_O, int C_O, int WS>
+template<typename DTYPE, int K_II, int K_I, int Y_I, int X_I, int Y_O, int X_O, int C_I, int K_OO, int K_OI, int C_O, int WS>
 bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input, 
                     ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &weight, 
                     ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &output) {
@@ -61,7 +61,7 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   // local buffers to store partial output 
   // There are four of them because K_I = 4 
   #define OUT_TILE_INIT(z,i,unused)\
-    PackedStencil<DTYPE, K_II, 1, 1> BOOST_PP_CAT(out_tile_,i)[XY_I*K_O];   
+    PackedStencil<DTYPE, K_II, 1, 1> BOOST_PP_CAT(out_tile_,i)[XY_I*K_OO*K_OI];
   REPEAT(OUT_TILE_INIT)
 
   /*
@@ -75,11 +75,13 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   xy_o: for (int p = 0; p < XY_O; ++p) {
   // loop over channel tile
   co: for (int c_idx = 0; c_idx < C_O; ++c_idx) {
+  // loop over outer kernel tiles
+  k_oo: for(int koo_idx = 0; koo_idx < K_OO; ++koo_idx){
   // loop over filter window
   winx: for (int wx_idx = 0; wx_idx < WS; ++wx_idx) {
   winy: for (int wy_idx = 0; wy_idx < WS; ++wy_idx) {
   // loop over kernel tiles
-  ko: for (int k_idx = 0; k_idx < K_O; ++k_idx) {
+  k_oi: for (int koi_idx = 0; koi_idx < K_OI; ++koi_idx) {
   // loop inside each image tile
   xy_i: for (int step = 0; step < K_I+C_I+XY_I-1; ++step) {
         static PackedStencil<DTYPE,K_II, K_I> w_tile[C_I];
@@ -141,7 +143,7 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
                 }
           } else {
             #define TMP_ROW_OUT(z,i,unused) \
-              BOOST_PP_CAT(tmp_row_, i) = BOOST_PP_CAT(out_tile_, i)[k_idx*XY_I + step];
+              BOOST_PP_CAT(tmp_row_, i) = BOOST_PP_CAT(out_tile_, i)[(koo_idx*K_OI+koi_idx)*XY_I + step];
             REPEAT(TMP_ROW_OUT)
 
           }
@@ -201,7 +203,7 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
           // output row if one has completed
           if (step >= K_I+C_I-1) {
             #define OUTPUT_ROW_BODY(z,i,unused)\
-              BOOST_PP_CAT(out_tile_,i)[k_idx*XY_I+step-(K_I+C_I-1)] = BOOST_PP_CAT(output_fifo_,i);
+              BOOST_PP_CAT(out_tile_,i)[(koo_idx*K_OI+koi_idx)*XY_I+step-(K_I+C_I-1)] = BOOST_PP_CAT(output_fifo_,i);
             REPEAT(OUTPUT_ROW_BODY)
 
             if (c_idx==C_O-1 && wx_idx == WS-1 && wy_idx == WS-1) {
@@ -209,18 +211,14 @@ bool systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
             }
           }
     } //STEPS
-    } //K_O
+    } //K_OI
     } //WS
     } //WS
+    } //K_OO
     } //C_O
     } //XY_O
     return true;
 }
-
-void active_mask_generator(ac_channel<Params> &params){
-  int num_iterations = ceil();
-}
-
 
   // Macros used for for-loop 
   #define PRED(r, state) \
@@ -291,7 +289,7 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
 
   unified_double_buffer<DTYPE, 
                         (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
-                        (CI_NUM*KO_NUM*CO_NUM*W_SIZE*W_SIZE),
+                        (CI_NUM*KO_NUM*W_SIZE*W_SIZE),
                         CI_NUM, KII, KI_NUM>
                         ( BOOST_PP_CAT(input, BOOST_PP_DEC(BUFFER_LEVELS)),
                           BOOST_PP_CAT(input, BUFFER_LEVELS),
@@ -299,7 +297,7 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
                           BOOST_PP_CAT(weight, BUFFER_LEVELS),
                           BOOST_PP_CAT(params_stream_level_, BUFFER_LEVELS) );
 
-  systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KO_NUM, CO_NUM, W_SIZE>
+  systolic_array<DTYPE, KII, KI_NUM, OROW_I, OCOL_I, OROW_O, OCOL_O, CI_NUM, KOO_NUM, KO_NUM, CO_NUM, W_SIZE>
                 ( BOOST_PP_CAT(input, BUFFER_LEVELS),
                   BOOST_PP_CAT(weight, BUFFER_LEVELS),
                   output);

@@ -77,29 +77,31 @@ CCS_MAIN(int argc, char *argv[])
     PackedStencil<DTYPE, KII, KI_NUM> weight_row;
     for (int ro = 0; ro < OROW_O; ro++) {
       for (int co = 0; co < OCOL_O; co++) {     
-        for (int k = 0; k < KO_NUM; k++) {
-          for (int c = 0; c < CO_NUM; c++) {
-            for (int wy = 0; wy <W_SIZE; wy++) {
-              for (int wx = 0; wx <W_SIZE; wx++) {
-                for ( int i = 0; i < CI_NUM; i++ ){
-                  for ( int j = 0; j < KI_NUM; j++ ){
-                    for (int jj=0; jj < KII; jj++) {
-                      weight_row(weight[wy][wx][c*CI_NUM+i][k*KI_NUM*KII + j*KII + jj], jj,j,0,0);
-                    } // for jj
-                  }  // for j
-                  weight_stream.write(weight_row);
-                }  // for i
-              }  // for wy
-            }  // for wx
-          }  // for c
-        }  // for k
+        for (int c = 0; c < CO_NUM; c++) {
+          for(int koo = 0; koo < KOO_NUM; koo++){
+            for (int k = 0; k < KO_NUM; k++) {
+              for (int wy = 0; wy <W_SIZE; wy++) {
+                for (int wx = 0; wx <W_SIZE; wx++) {
+                  for ( int i = 0; i < CI_NUM; i++ ){
+                    for ( int j = 0; j < KI_NUM; j++ ){
+                      for (int jj=0; jj < KII; jj++) {
+                        weight_row(weight[wy][wx][c*CI_NUM+i][(koo*KO_NUM+k)*KI_NUM*KII + j*KII + jj], jj,j,0,0);
+                      } // for jj
+                    }  // for j
+                    weight_stream.write(weight_row);
+                  }  // for i
+                }  // for wy
+              }  // for wx
+            }  // for c
+          }  // for k
+        } // for koo
       }  // for co
     }  // for ko 
 
     printf("finished weights\n");
 
     ac_channel<Params> params_stream;
-    Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
+    Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KOO_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
     params_stream.write(params);
 
     // Main function call
@@ -111,23 +113,25 @@ CCS_MAIN(int argc, char *argv[])
     printf("\nOutput\n\n"); 
     // compare the hardware results with the reference model
     for (int ro = 0; ro < OROW_O; ro++) {
-      for (int co = 0; co < OCOL_O; co++) {    
-        for (int k = 0; k < KO_NUM; k++) {
-          for (int p = 0; p < OROW_I; p++ ){   
-            for (int i = 0; i < OCOL_I; i++ ){   
-              PackedStencil<DTYPE, KII, KI_NUM> output_col = output_stream.read();
-              for (int j = 0; j < KI_NUM; j++) {
-                for (int jj = 0; jj < KII; jj++) {
-                  DTYPE out_value = output_col(jj, j);
-                  if((int)output_ref[ro*OROW_I+p][co*OCOL_I+i][k*KI_NUM*KII+j*KII+jj] != (int)out_value) {
-                    errCnt++;
-                    printf("output[%d][%d][%d] = %d, ref = %d\n",ro*OROW_I+p, co*OCOL_I+i, k*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[ro*OROW_I+p][co*OCOL_I+i][k*KI_NUM*KII+j*KII+jj]); 
-                  }  
-                }  // for jj
-              }  // for j
-            }  // for i
-          }  // for p
-        }  // for k
+      for (int co = 0; co < OCOL_O; co++) {
+        for(int koo = 0; koo < KOO_NUM; koo++){
+          for (int k = 0; k < KO_NUM; k++) {
+            for (int p = 0; p < OROW_I; p++ ){
+              for (int i = 0; i < OCOL_I; i++ ){
+                PackedStencil<DTYPE, KII, KI_NUM> output_col = output_stream.read();
+                for (int j = 0; j < KI_NUM; j++) {
+                  for (int jj = 0; jj < KII; jj++) {
+                    DTYPE out_value = output_col(jj, j);
+                    if((int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj] != (int)out_value) {
+                      errCnt++;
+                      printf("output[%d][%d][%d] = %d, ref = %d\n",ro*OROW_I+p, co*OCOL_I+i, (koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj]);
+                    }
+                  }  // for jj
+                }  // for j
+              }  // for i
+            }  // for p
+          }  // for k
+        } // for koo
       }  // for co
     }  // for ko
     

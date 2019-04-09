@@ -124,12 +124,24 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
    int idx = 0;
     for (int inner_block = 0; inner_block < inner_blocking; inner_block++){
      if(total_blocks > 0){
+       for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
         for (int wx_idx = 0; wx_idx < params.WS; wx_idx++) {
           for (int wy_idx = 0; wy_idx < params.WS; wy_idx++) {
-            for (int k_idx = 0; k_idx < params.K_O; k_idx++) {
+            for (int koi_idx = 0; koi_idx < params.K_OI; koi_idx++) {
               for (int x_idx=0; x_idx < params.Y_I; x_idx++) {
                 for (int y_idx=0; y_idx < params.X_I; y_idx++) {
-                  int address = (inner_block*((params.Y_I+params.WS)*(params.X_I+params.WS-1) +  params.X_I + params.WS)) + ((x_idx+wx_idx)* (params.X_I+params.WS-1) +  y_idx + wy_idx);
+                  int address = (inner_block*
+                                  (
+                                    (params.Y_I+params.WS)*(params.X_I+params.WS-1) +
+                                    params.X_I + 
+                                    params.WS
+                                  )
+                                ) +
+                                (
+                                  (x_idx+wx_idx)*(params.X_I+params.WS-1) +
+                                  y_idx +
+                                  wy_idx
+                                );
                   addresses.write(address);
                   idx++;
                 }
@@ -137,6 +149,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
             }
          }
         }
+       }
        total_blocks--;
       } 
     }
@@ -155,27 +168,31 @@ void WRITE_BLOCK_WEIGHTS(ac_channel<Params> &params_stream,
                          REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)) {
 
 Params params = params_stream.read();
-int block_size = params.C_I*params.K_O*params.C_O*params.WS*params.WS;                             
+int block_size = params.C_I*params.K_OI*params.WS*params.WS;
 #pragma hls_pipeline_init_interval 1
   WRITE: for(int p_idx = 0; p_idx < params.X_O*params.Y_O; p_idx++) {
+    for(int c_idx = 0; c_idx < params.C_O; c_idx++){
+      for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
     
-    #define WRITE_BLOCK_WEIGHTS_INIT(z,i,unused)\
-      chanStruct<PackedStencil<DTYPE, KI, 1>, size> BOOST_PP_CAT(tmp_,i);
-    REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
+        #define WRITE_BLOCK_WEIGHTS_INIT(z,i,unused)\
+          chanStruct<PackedStencil<DTYPE, KI, 1>, size> BOOST_PP_CAT(tmp_,i);
+        REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
 
-    for(int idx = 0; idx < block_size; idx++){
-      PackedStencil<DTYPE, KI, K_I> row;
-      row = din.read();
+        for(int idx = 0; idx < block_size; idx++){
+          PackedStencil<DTYPE, KI, K_I> row;
+          row = din.read();
 
-      #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
-        BOOST_PP_CAT(tmp_, i).data[idx] = row.get_dim(i,0,0);
-        REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
+          #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
+            BOOST_PP_CAT(tmp_, i).data[idx] = row.get_dim(i,0,0);
+            REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
+        }
+
+        #define WRITE_BLOCK_WEIGHTS_WRITE(z,i,unused)\
+          BOOST_PP_CAT(dout_,i).write(BOOST_PP_CAT(tmp_,i));
+        REPEAT(WRITE_BLOCK_WEIGHTS_WRITE)
+
+      }
     }
-
-    #define WRITE_BLOCK_WEIGHTS_WRITE(z,i,unused)\
-      BOOST_PP_CAT(dout_,i).write(BOOST_PP_CAT(tmp_,i));
-    REPEAT(WRITE_BLOCK_WEIGHTS_WRITE)
-
   } // for p_idx
 }
 
@@ -196,21 +213,25 @@ Params params = param_stream.read();
 //reuse the weights in the double buffer when looping through different image tiles.
 #pragma hls_pipeline_init_interval 1
   READ: for(int p_idx = 0; p_idx < params.X_O*params.Y_O; p_idx++) {
-    #define READ_BLOCK_WEIGHTS_INIT(z,i,unused)\
-      chanStruct<PackedStencil<DTYPE, KI, 1>,size> BOOST_PP_CAT(tmp_,i);\
-      BOOST_PP_CAT(tmp_,i) = BOOST_PP_CAT(din_,i).read();
-    REPEAT(READ_BLOCK_WEIGHTS_INIT)
-    int address_size = address_sizes.read();
-    for(int idx = 0; idx < address_size; idx++){
-      PackedStencil<DTYPE, KI, K_I> dout_struct;
+    for(int c_idx = 0; c_idx < params.C_O; c_idx++){
+      for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
+        #define READ_BLOCK_WEIGHTS_INIT(z,i,unused)\
+          chanStruct<PackedStencil<DTYPE, KI, 1>,size> BOOST_PP_CAT(tmp_,i);\
+          BOOST_PP_CAT(tmp_,i) = BOOST_PP_CAT(din_,i).read();
+        REPEAT(READ_BLOCK_WEIGHTS_INIT)
+        int address_size = address_sizes.read();
+        for(int idx = 0; idx < address_size; idx++){
+          PackedStencil<DTYPE, KI, K_I> dout_struct;
 
-      int address = addresses.read();
+          int address = addresses.read();
 
-      #define READ_BLOCK_WEIGHTS_DOUT(z,i,unused)\
-        dout_struct.set_dim(BOOST_PP_CAT(tmp_, i).data[address], i, 0, 0);
-      REPEAT(READ_BLOCK_WEIGHTS_DOUT)
+          #define READ_BLOCK_WEIGHTS_DOUT(z,i,unused)\
+            dout_struct.set_dim(BOOST_PP_CAT(tmp_, i).data[address], i, 0, 0);
+          REPEAT(READ_BLOCK_WEIGHTS_DOUT)
 
-      dout.write(dout_struct);
+          dout.write(dout_struct);
+        }
+      }
     }
   } // for p_idx
 }
@@ -221,8 +242,8 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
   Params params = params_stream.read();
 
-  int total_blocks = params.X_O * params.Y_O;
-  int block_size = params.C_I*params.K_O*params.C_O*params.WS*params.WS;
+  int total_blocks = params.X_O * params.Y_O * params.C_O * params.K_OO;
+  int block_size = params.C_I*params.K_OI*params.WS*params.WS;
   int inner_blocking = size / block_size;
   int outer_blocking = total_blocks / inner_blocking;
 
@@ -230,21 +251,18 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
    int idx = 0;
    for (int inner_block = 0; inner_block < inner_blocking; inner_block++){
      if(total_blocks > 0){
-       for (int c_idx = 0; c_idx <params.C_O; c_idx++) {
-        for (int wx_idx = 0; wx_idx < params.WS*params.WS; wx_idx++){
-          for (int k_idx = 0; k_idx < params.K_O; k_idx++) {
+      for (int wx_idx = 0; wx_idx < params.WS*params.WS; wx_idx++){
+       for (int koi_idx = 0; koi_idx < params.K_OI; koi_idx++) {
             for (int r_idx = 0; r_idx < params.C_I; r_idx++){
               int address = inner_block*
                               ( 
-                                (params.K_O*params.C_I*params.C_O*params.WS*params.WS) +
-                                (params.C_O*params.C_I*params.WS*params.WS) + 
+                                (params.K_OI*params.C_I*params.WS*params.WS) +
                                 (params.WS*params.WS*params.C_I) +
                                 (params.C_I) 
                               )
                             + 
                               (
-                                (k_idx*params.C_I*params.C_O*params.WS*params.WS) +
-                                (c_idx*params.C_I*params.WS*params.WS) + 
+                                (koi_idx*params.C_I*params.WS*params.WS) +
                                 (wx_idx*params.C_I) + 
                                 (r_idx) 
                               );
@@ -253,7 +271,6 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
             }
           }
         }
-       }
       total_blocks--;
      }
    }

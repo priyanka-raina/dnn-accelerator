@@ -7,7 +7,8 @@ typedef struct {
    int Y_I;
    int X_I;
    int K_I;
-   int K_O;
+   int K_OO;
+   int K_OI;
    int C_I;
    int C_O;
    int WS;

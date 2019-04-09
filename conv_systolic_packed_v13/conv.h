@@ -24,10 +24,11 @@
 
 // YOU CAN CHANGE BELOW
 #define K_NUM       64  //kernel number, KI_NUM must be a factor of K_NUM
-#define C_NUM       64  //channel number, CI_NUM must be a factor of C_NUM
+#define C_NUM       64 //channel number, CI_NUM must be a factor of C_NUM
 
+#define KOO_NUM 2 //the outer loop of the outer kernel dimension
 
-#define KO_NUM      K_NUM / KI_NUM / KII   //the outer loop size of kernel dimension, kernel number = KO_NUM * KI_NUM
+#define KO_NUM      K_NUM / KOO_NUM / KI_NUM / KII   //the outer loop size of kernel dimension, kernel number = KO_NUM * KOO_NUM * KI_NUM
 #define CO_NUM      C_NUM / CI_NUM         //the inner loop size of channel dimension, channle number = CO_NUM * CI_NUM
 
 #define W_SIZE      3   //window width or height (assume they are the same)
