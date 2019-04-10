@@ -123,6 +123,8 @@ CCS_MAIN(int argc, char *argv[])
                   for (int jj = 0; jj < KII; jj++) {
                     DTYPE out_value = output_col(jj, j);
                     if((int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj] != (int)out_value) {
+                      printf("***ERROR***\n");
+                      CCS_RETURN(0);
                       errCnt++;
                       printf("output[%d][%d][%d] = %d, ref = %d\n",ro*OROW_I+p, co*OCOL_I+i, (koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj, (int)output_col(jj, j), (int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj]);
                     }

@@ -288,8 +288,8 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
   BOOST_PP_FOR((1, BUFFER_LEVELS), PRED, OP, MACRO_BUFFER)
 
   unified_double_buffer<DTYPE, 
-                        (OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
-                        (CI_NUM*KO_NUM*W_SIZE*W_SIZE),
+                        2*(OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
+                        2*(CI_NUM*KO_NUM*W_SIZE*W_SIZE),
                         CI_NUM, KII, KI_NUM>
                         ( BOOST_PP_CAT(input, BOOST_PP_DEC(BUFFER_LEVELS)),
                           BOOST_PP_CAT(input, BUFFER_LEVELS),
