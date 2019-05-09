@@ -67,10 +67,12 @@ static inline void bitcast_to_type(ac_int<64, false>& in, double& out) {
   out = temp.f;
 }
 
+#pragma hls_map_to_operator [CCORE]
 template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
-  struct PackedStencil {
-    ac_int<8*sizeof(T)*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false> value;
+  class PackedStencil {
+    public:
 
+    ac_int<8*sizeof(T)*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false> value;
     /** writer
      */
     inline ac_int<8*sizeof(T), false>
@@ -91,7 +93,7 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
 
     /** reader
      */
-    inline ac_int<8*sizeof(T), false>
+    ac_int<8*sizeof(T), false>
       operator()(size_t index_0, size_t index_1 = 0, size_t index_2 = 0, size_t index_3 = 0) const {
 
 #ifndef __SYNTHESIS__

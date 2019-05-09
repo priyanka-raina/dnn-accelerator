@@ -8,6 +8,8 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/cat.hpp>
 
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
 template<typename T, int N>
 struct chanStruct{
   T data[N];
@@ -15,6 +17,7 @@ struct chanStruct{
 
 
 //FIFO implemented as shift registers
+#pragma hls_map_to_operator [CCORE]
 template<int ID,typename DTYPE,int NUM_REGS> 
 void fifo(DTYPE din, DTYPE &dout) {
   static DTYPE regs[NUM_REGS];
@@ -42,7 +45,7 @@ void WRITE_BLOCK_INPUT(ac_channel<Params> &param_stream,
                       REPEAT(WRITE_BLOCK_INPUT_PARAMS)
                       ) {
 
-Params params = param_stream.read();
+static Params params = param_stream.read();
 
 int total_blocks = params.X_O*params.Y_O*params.C_O;
 int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
@@ -90,7 +93,7 @@ void READ_BLOCK_INPUT(ac_channel<Params> &param_stream, ac_channel<int> &address
                      REPEAT(READ_BLOCK_INPUT_PARAMS)
                      ac_channel<PackedStencil<DTYPE, C_I,1,1> > &dout){
 
-Params params = param_stream.read();
+static Params params = param_stream.read();
 
 int total_blocks = params.X_O*params.Y_O*params.C_O;
 int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
@@ -126,7 +129,7 @@ and window locations*/
 template<int size, int C_I>
 void address_generator_inputs(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
-  Params params = params_stream.read();
+  static Params params = params_stream.read();
 
   int total_blocks = params.X_O*params.Y_O*params.C_O;
   int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
@@ -135,6 +138,10 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
 
   for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
    int idx = 0;
+   
+   int chunk_address_size = MIN(inner_blocking, total_blocks) * params.K_OO*params.WS*params.WS*params.K_OI*params.Y_I*params.X_I;
+   address_sizes.write(chunk_address_size);
+
     for (int inner_block = 0; inner_block < inner_blocking; inner_block++){
      if(total_blocks > 0){
        for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
@@ -166,7 +173,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
        total_blocks--;
       } 
     }
-    address_sizes.write(idx);
+    // address_sizes.write(idx);
   }
 }
 
@@ -180,7 +187,7 @@ void WRITE_BLOCK_WEIGHTS(ac_channel<Params> &params_stream,
                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &din,
                          REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)) {
 
-Params params = params_stream.read();
+static Params params = params_stream.read();
 
 int total_blocks = params.X_O * params.Y_O * params.C_O * params.K_OO;
 int block_size = params.C_I*params.K_OI*params.WS*params.WS;
@@ -255,7 +262,7 @@ void READ_BLOCK_WEIGHTS(ac_channel<Params> &param_stream,
                         REPEAT(READ_BLOCK_WEIGHTS_PARAMS)
                         ac_channel<PackedStencil<DTYPE, KI, K_I,1,1> > &dout){
 
-Params params = param_stream.read();
+static Params params = param_stream.read();
 
 int total_blocks = params.X_O * params.Y_O * params.C_O * params.K_OO;
 int block_size = params.C_I*params.K_OI*params.WS*params.WS;
@@ -292,7 +299,7 @@ int outer_blocking = total_blocks / blocks_per_buffer;
 template<int size>
 void  address_generator_weights(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
-  Params params = params_stream.read();
+  static Params params = params_stream.read();
 
   int total_blocks = params.X_O * params.Y_O * params.C_O * params.K_OO;
   int block_size = params.C_I*params.K_OI*params.WS*params.WS;
@@ -301,6 +308,10 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
 
   for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
    int idx = 0;
+
+   int chunk_address_size = MIN(inner_blocking, total_blocks) * params.WS*params.WS*params.K_OI*params.C_I;
+   address_sizes.write(chunk_address_size);
+
    for (int inner_block = 0; inner_block < inner_blocking; inner_block++){
      if(total_blocks > 0){
       for (int wx_idx = 0; wx_idx < params.WS*params.WS; wx_idx++){
@@ -321,7 +332,7 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
       total_blocks--;
      }
    }
-   address_sizes.write(idx);
+  //  address_sizes.write(idx);
   }
 }
 
