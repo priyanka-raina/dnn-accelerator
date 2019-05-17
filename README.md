@@ -1,15 +1,25 @@
 # DNN Accelerator Generator
-## Analytical model and auto-scheduler
-https://github.com/xuanyoya/CNN-blocking/tree/dev
 
 ## Timeline
-Reduce clock period, rerunning DC, run PrimeTime power simulation, energy comparision with envision, get rid of FIFOs at top and bottom of systolic array, generate time resource allocation- 5/24
-Why MACs take 3 cycles- 5/24
-Unifying buffers- 5/31
-Xuan's code (generate optimal schedule, find out what happens to output)- 6/7
-Register File in PEs 
+### 5/24
+- [ ] 200 MHz clock
+- [ ] PrimeTime power simulation
+- [ ] Energy comparision
+- [ ] Time resource allocation, check cycles for MACs
+- [ ] Replace FIFOs for accumulation buffer with indexing
 
+### 5/31
+- [ ] Unify input and weight buffers
 
+### 6/7
+- [ ] Generate optimal schedule using Xuan's scheduler
+- [ ] Figure out where outputs go
+
+### 6/14
+- [ ] Register file in PEs
+
+## Analytical model and auto-scheduler
+https://github.com/xuanyoya/CNN-blocking/tree/dev
 
 ## Designs in the paper
 | Name  | Dataflow | Dimension | PE Number | RF Size | Mem Size
