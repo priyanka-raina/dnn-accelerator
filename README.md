@@ -2,7 +2,7 @@
 
 ## Timeline
 ### 5/24
-- [ ] 200 MHz clock
+- [x] 200 MHz clock
 - [ ] PrimeTime power simulation
 - [ ] Energy comparision
 - [ ] Time resource allocation, check cycles for MACs
