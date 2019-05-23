@@ -9,10 +9,11 @@
 | 5/24 | Time resource allocation, check cycles for MACs |
 | 5/24 | Replace FIFOs for accumulation buffer with indexing |
 | 5/31 | Unify input and weight buffers |
-| 6/7  | Generate optimal schedule using Xuan's scheduler |
+| 6/7  | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
 | 6/7  | Figure out where outputs go |
 | 6/14 | Register file in PEs |
 |      | Run 16x16 design through place and route flow |
+|      | Summarize HLS coding techniques used in the design |
 |      | Write ASPLOS paper |
 
 ## Analytical model and auto-scheduler
