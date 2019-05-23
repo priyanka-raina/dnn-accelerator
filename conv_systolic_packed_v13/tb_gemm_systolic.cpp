@@ -77,8 +77,8 @@ CCS_MAIN(int argc, char *argv[])
     PackedStencil<DTYPE, KII, KI_NUM> weight_row;
     for (int ro = 0; ro < OROW_O; ro++) {
       for (int co = 0; co < OCOL_O; co++) {     
-        for (int c = 0; c < CO_NUM; c++) {
-          for(int koo = 0; koo < KOO_NUM; koo++){
+        for(int koo = 0; koo < KOO_NUM; koo++){
+          for (int c = 0; c < CO_NUM; c++) {
             for (int k = 0; k < KO_NUM; k++) {
               for (int wy = 0; wy <W_SIZE; wy++) {
                 for (int wx = 0; wx <W_SIZE; wx++) {

@@ -23,7 +23,7 @@
 #include <boost/preprocessor/punctuation/comma.hpp>
 #include <boost/preprocessor/arithmetic/dec.hpp>
 
-#pragma hls_map_to_operator
+#pragma hls_map_to_operator [CCORE]
 template<typename DTYPE, int KI>
 class pe_template{
   private:
@@ -85,8 +85,9 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   // local buffers to store partial output 
   // There are four of them because K_I = 4 
   #define OUT_TILE_INIT(z,i,unused)\
-    ac_int<8*sizeof(DTYPE)*K_II, false> BOOST_PP_CAT(out_tile_,i)[XY_I*K];
+    ac_int<8*sizeof(DTYPE)*K_II, false> BOOST_PP_CAT(out_tile_,i)[256];
   REPEAT(OUT_TILE_INIT)
+
   // #define OUT_TILE_INIT(z,i,unused)\
   //   accum_buffer<DTYPE, K_II, XY_I*512> BOOST_PP_CAT(out_tile_,i); 
   // REPEAT(OUT_TILE_INIT)
@@ -109,12 +110,12 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   //loop over image tiles
     #pragma hls_unroll no
   xy_o: for (int p = 0; p < XY_O; ++p) {
-  // loop over channel tile
-    #pragma hls_unroll no
-  co: for (int c_idx = 0; c_idx < params.C_O; ++c_idx) {
   // loop over outer kernel tiles
     #pragma hls_unroll no
   k_oo: for(int koo_idx = 0; koo_idx < params.K_OO; ++koo_idx){
+  // loop over channel tile
+    #pragma hls_unroll no
+  co: for (int c_idx = 0; c_idx < params.C_O; ++c_idx) {
   // loop over filter window
     #pragma hls_unroll no
   winx: for (int wx_idx = 0; wx_idx < params.WS; ++wx_idx) {
@@ -185,7 +186,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
                 }
           } else {
             #define TMP_ROW_OUT(z,i,unused) \
-              BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[(koo_idx*params.K_OI+koi_idx)*XY_I + step];
+              BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[koi_idx*XY_I + step];
             REPEAT(TMP_ROW_OUT)
             
             // #define TMP_ROW_OUT(z,i,unused) \
@@ -272,7 +273,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
           // output row if one has completed
           if (step >= K_I+C_I-1) {
             #define OUTPUT_ROW_BODY(z,i,unused)\
-              BOOST_PP_CAT(out_tile_,i)[(koo_idx*params.K_OI+koi_idx)*XY_I+step-(K_I+C_I-1)] = BOOST_PP_CAT(output_fifo_,i).value;
+              BOOST_PP_CAT(out_tile_,i)[koi_idx*XY_I+step-(K_I+C_I-1)] = BOOST_PP_CAT(output_fifo_,i).value;
             REPEAT(OUTPUT_ROW_BODY)
             // #define OUTPUT_ROW_BODY(z,i,unused)\
             //   BOOST_PP_CAT(out_tile_,i).write(BOOST_PP_CAT(output_fifo_,i).value, (koo_idx*params.K_OI+koi_idx)*XY_I+step-(K_I+C_I-1)); 
@@ -361,8 +362,8 @@ void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0,
   BOOST_PP_FOR((1, BUFFER_LEVELS), PRED, OP, MACRO_BUFFER)
 
   unified_double_buffer<DTYPE, 
-                        2048,//256*1024/2/KI_NUM, 
-                        2048,//256*1024/2/KI_NUM,
+                        128/2*1024/CI_NUM,//CO_NUM*(OROW_I+W_SIZE-1)*(OCOL_I+W_SIZE-1), 
+                        128/2*1024/CI_NUM,//2*(CI_NUM*KO_NUM*W_SIZE*W_SIZE),
                         CI_NUM, KII, KI_NUM>
                         ( BOOST_PP_CAT(input, BOOST_PP_DEC(BUFFER_LEVELS)),
                           BOOST_PP_CAT(input, BUFFER_LEVELS),

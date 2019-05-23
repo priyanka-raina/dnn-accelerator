@@ -9,6 +9,7 @@
 #include <boost/preprocessor/cat.hpp>
 
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
 
 template<typename T, int N>
 struct chanStruct{
@@ -17,7 +18,7 @@ struct chanStruct{
 
 
 //FIFO implemented as shift registers
-#pragma hls_map_to_operator [CCORE]
+// #pragma hls_map_to_operator [CCORE]
 template<int ID,typename DTYPE,int NUM_REGS> 
 void fifo(DTYPE din, DTYPE &dout) {
   static DTYPE regs[NUM_REGS];
@@ -47,19 +48,19 @@ void WRITE_BLOCK_INPUT(ac_channel<Params> &param_stream,
 
 static Params params = param_stream.read();
 
-int total_blocks = params.X_O*params.Y_O*params.C_O;
-int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
-int blocks_per_buffer = size / block_size;
-int outer_blocking = total_blocks/blocks_per_buffer;
+int total_blocks = params.X_O*params.Y_O;
+int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+int inner_blocking = size/block_size;
+int outer_blocking = total_blocks/inner_blocking;
 
 #pragma hls_pipeline_init_interval 1
-  for(int o_block = 0; o_block < outer_blocking; o_block++){
+  for(int o_block = 0; o_block < outer_blocking+1; o_block++){
 
       #define WRITE_BLOCK_INPUT_INIT(z, i, unused)\
         chanStruct<DTYPE, size> BOOST_PP_CAT(tmp_,i);
       REPEAT(WRITE_BLOCK_INPUT_INIT)
 
-      for(int j = 0; j < blocks_per_buffer; j++){
+      for(int j = 0; j < inner_blocking; j++){
         if(total_blocks > 0){
           
           for(int idx = 0; idx < block_size; idx++){
@@ -95,15 +96,15 @@ void READ_BLOCK_INPUT(ac_channel<Params> &param_stream, ac_channel<int> &address
 
 static Params params = param_stream.read();
 
-int total_blocks = params.X_O*params.Y_O*params.C_O;
-int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
-int blocks_per_buffer = size / block_size;
-int outer_blocking = total_blocks/blocks_per_buffer;
+int total_blocks = params.X_O*params.Y_O;
+int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+int inner_blocking = size/block_size;
+int outer_blocking = total_blocks/inner_blocking;
 
 /*reuse the input pixels in the double buffer when iterating through different kernels
 and window locations*/
 #pragma hls_pipeline_init_interval 1
-  for(int o_block = 0; o_block < outer_blocking; o_block++){
+  for(int o_block = 0; o_block < outer_blocking+1; o_block++){
 
         #define READ_BLOCK_INPUT_INIT(z, i, unused)\
           chanStruct<DTYPE,size> BOOST_PP_CAT(tmp_,i) = BOOST_PP_CAT(din_, i).read();
@@ -131,20 +132,21 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
   static Params params = params_stream.read();
 
-  int total_blocks = params.X_O*params.Y_O*params.C_O;
-  int block_size = (params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+  int total_blocks = params.X_O*params.Y_O;
+  int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
   int inner_blocking = size/block_size;
   int outer_blocking = total_blocks/inner_blocking;
 
-  for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
+  for(int outer_block = 0; outer_block < outer_blocking+1; outer_block++ ){
    int idx = 0;
    
-   int chunk_address_size = MIN(inner_blocking, total_blocks) * params.K_OO*params.WS*params.WS*params.K_OI*params.Y_I*params.X_I;
+   int chunk_address_size = MIN(inner_blocking, total_blocks) * params.K_OO*params.C_O*params.WS*params.WS*params.K_OI*params.Y_I*params.X_I;
    address_sizes.write(chunk_address_size);
 
     for (int inner_block = 0; inner_block < inner_blocking; inner_block++){
      if(total_blocks > 0){
        for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
+        for(int co_idx = 0; co_idx < params.C_O; co_idx++){
         for (int wx_idx = 0; wx_idx < params.WS; wx_idx++) {
           for (int wy_idx = 0; wy_idx < params.WS; wy_idx++) {
             for (int koi_idx = 0; koi_idx < params.K_OI; koi_idx++) {
@@ -157,6 +159,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
                                   //   params.WS
                                   // )
                                 ) +
+                                (co_idx*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1)) +
                                 (
                                   (x_idx+wx_idx)*(params.X_I+params.WS-1) +
                                   y_idx +
@@ -170,6 +173,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
          }
         }
        }
+       }
        total_blocks--;
       } 
     }
@@ -178,7 +182,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
 }
 
 #define WRITE_BLOCK_WEIGHT_PARAMS(z,i,unused)\
-  BOOST_PP_COMMA_IF(i) ac_channel<chanStruct<PackedStencil<DTYPE, KI, 1>, size> > BOOST_PP_CAT(&dout_,i)
+  BOOST_PP_COMMA_IF(i) ac_channel<chanStruct<DTYPE, size> > BOOST_PP_CAT(&dout_,i)
 
 #pragma hls_design
 #pragma hls_pipeline_init_interval 1
@@ -195,10 +199,10 @@ int blocks_per_buffer = size / block_size;
 int outer_blocking = total_blocks / blocks_per_buffer;
 
 #pragma hls_pipeline_init_interval 1
-for(int o_block = 0; o_block < outer_blocking; o_block++){
+for(int o_block = 0; o_block < outer_blocking+1; o_block++){
 
   #define WRITE_BLOCK_WEIGHTS_INIT(z,i,unused)\
-    chanStruct<PackedStencil<DTYPE, KI, 1>, size> BOOST_PP_CAT(tmp_,i);
+    chanStruct<DTYPE, size> BOOST_PP_CAT(tmp_,i);
   REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
 
   for(int j = 0; j < blocks_per_buffer; j++){
@@ -208,7 +212,7 @@ for(int o_block = 0; o_block < outer_blocking; o_block++){
         row = din.read();
 
         #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
-          BOOST_PP_CAT(tmp_, i).data[j*block_size+idx] = row.get_dim(i,0,0);
+          BOOST_PP_CAT(tmp_, i).data[j*block_size+idx] = row(0,i,0,0);
           REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
       }
 
@@ -223,35 +227,9 @@ for(int o_block = 0; o_block < outer_blocking; o_block++){
 }
                          }
 
-//   WRITE: for(int p_idx = 0; p_idx < params.X_O*params.Y_O; p_idx++) {
-//     for(int c_idx = 0; c_idx < params.C_O; c_idx++){
-//       for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
-    
-//         #define WRITE_BLOCK_WEIGHTS_INIT(z,i,unused)\
-//           chanStruct<PackedStencil<DTYPE, KI, 1>, size> BOOST_PP_CAT(tmp_,i);
-//         REPEAT(WRITE_BLOCK_WEIGHTS_INIT)
-
-//         for(int idx = 0; idx < block_size*blocks_per_buffer; idx++){
-//           PackedStencil<DTYPE, KI, K_I> row;
-//           row = din.read();
-
-//           #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
-//             BOOST_PP_CAT(tmp_, i).data[idx] = row.get_dim(i,0,0);
-//             REPEAT(WRITE_BLOCK_WEIGHT_TEMP_WRITE)
-//         }
-
-//         #define WRITE_BLOCK_WEIGHTS_WRITE(z,i,unused)\
-//           BOOST_PP_CAT(dout_,i).write(BOOST_PP_CAT(tmp_,i));
-//         REPEAT(WRITE_BLOCK_WEIGHTS_WRITE)
-
-//       }
-//     }
-//   } // for p_idx
-// }
-
 
 #define READ_BLOCK_WEIGHTS_PARAMS(z,i,unused)\
-  ac_channel<chanStruct<PackedStencil<DTYPE,KI,1,1,1>, size> > &BOOST_PP_CAT(din_,i),
+  ac_channel<chanStruct<DTYPE, size> > &BOOST_PP_CAT(din_,i),
   
 #pragma hls_design
 #pragma hls_pipeline_init_interval 1
@@ -271,9 +249,9 @@ int outer_blocking = total_blocks / blocks_per_buffer;
 
 //reuse the weights in the double buffer when looping through different image tiles.
 #pragma hls_pipeline_init_interval 1
-  for(int o_block = 0; o_block < outer_blocking; o_block++){
+  for(int o_block = 0; o_block < outer_blocking+1; o_block++){
         #define READ_BLOCK_WEIGHTS_INIT(z,i,unused)\
-          chanStruct<PackedStencil<DTYPE, KI, 1>,size> BOOST_PP_CAT(tmp_,i);\
+          chanStruct<DTYPE,size> BOOST_PP_CAT(tmp_,i);\
           BOOST_PP_CAT(tmp_,i) = BOOST_PP_CAT(din_,i).read();
         REPEAT(READ_BLOCK_WEIGHTS_INIT)
 
@@ -285,7 +263,7 @@ int outer_blocking = total_blocks / blocks_per_buffer;
           int address = addresses.read();
 
           #define READ_BLOCK_WEIGHTS_DOUT(z,i,unused)\
-            dout_struct.set_dim(BOOST_PP_CAT(tmp_, i).data[address], i, 0, 0);
+            dout_struct(BOOST_PP_CAT(tmp_, i).data[address], 0, i, 0, 0);
           REPEAT(READ_BLOCK_WEIGHTS_DOUT)
 
           dout.write(dout_struct);
@@ -306,7 +284,7 @@ void  address_generator_weights(ac_channel<Params> &params_stream,
   int inner_blocking = size / block_size;
   int outer_blocking = total_blocks / inner_blocking;
 
-  for(int outer_block = 0; outer_block < outer_blocking; outer_block++ ){
+  for(int outer_block = 0; outer_block < outer_blocking+1; outer_block++ ){
    int idx = 0;
 
    int chunk_address_size = MIN(inner_blocking, total_blocks) * params.WS*params.WS*params.K_OI*params.C_I;
@@ -377,7 +355,7 @@ void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din,
 
   // weight banks
   #define DOUBLE_BUFFER_WEIGHT_INIT(z,i,unused)\
-    static ac_channel<chanStruct<PackedStencil<DTYPE, KI>, weight_size> > BOOST_PP_CAT(weights_shr_mem_,i);
+    static ac_channel<chanStruct<DTYPE, weight_size> > BOOST_PP_CAT(weights_shr_mem_,i);
   REPEAT(DOUBLE_BUFFER_WEIGHT_INIT)
 
   static ac_channel<Params> params_stream_address_generator_inputs;
