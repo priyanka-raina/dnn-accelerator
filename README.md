@@ -5,7 +5,7 @@
 |------|------|
 | 5/24 | :white_check_mark: 200 MHz clock |
 | 5/24 | PrimeTime power simulation |
-| 5/24 | Energy comparision |
+| 5/24 | Energy comparision with Xuan's model and ENVISION |
 | 5/24 | Time resource allocation, check cycles for MACs |
 | 5/24 | Replace FIFOs for accumulation buffer with indexing |
 | 5/31 | Unify input and weight buffers |
