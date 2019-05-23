@@ -1,22 +1,19 @@
 # DNN Accelerator Generator
 
 ## Timeline
-### 5/24
-- [x] 200 MHz clock
-- [ ] PrimeTime power simulation
-- [ ] Energy comparision
-- [ ] Time resource allocation, check cycles for MACs
-- [ ] Replace FIFOs for accumulation buffer with indexing
-
-### 5/31
-- [ ] Unify input and weight buffers
-
-### 6/7
-- [ ] Generate optimal schedule using Xuan's scheduler
-- [ ] Figure out where outputs go
-
-### 6/14
-- [ ] Register file in PEs
+| Date | Task |
+|------|------|
+| 5/24 | :white_check_mark: 200 MHz clock |
+| 5/24 | PrimeTime power simulation |
+| 5/24 | Energy comparision |
+| 5/24 | Time resource allocation, check cycles for MACs |
+| 5/24 | Replace FIFOs for accumulation buffer with indexing |
+| 5/31 | Unify input and weight buffers |
+| 6/7  | Generate optimal schedule using Xuan's scheduler |
+| 6/7  | Figure out where outputs go |
+| 6/14 | Register file in PEs |
+|      | Run 16x16 design through place and route flow |
+|      | Write ASPLOS paper |
 
 ## Analytical model and auto-scheduler
 https://github.com/xuanyoya/CNN-blocking/tree/dev
