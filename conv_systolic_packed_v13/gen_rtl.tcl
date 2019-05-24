@@ -31,23 +31,9 @@ go assembly
 directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core -CLOCK_OVERHEAD 0.000000
 
 # set memory for accumulation buffer
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_0:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_1:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_2:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_3:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_4:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_5:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_6:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_7:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_8:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_9:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_10:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_11:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_12:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_13:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_14:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_15:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-
+for {set i 0}  {$i < 16} {incr i} {
+    directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
+}
 
 # set registers for arrays
 directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/pe.x_reg:rsc -MAP_TO_MODULE {[Register]}
@@ -60,6 +46,10 @@ directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/core/xy_i:out_tmp2.valu
 
 go architect
 
-source ignore_mem_dep.tcl
+# ignore read/write memory dependencies for out_tile
+# the write_mem and read_mem addresses are always different so there isn't a real dependency
+for {set i 0}  {$i < 16} {incr i} {
+    ignore_memory_precedences -from xy_i:if#4:write_mem(out_tile_$i:rsc.@) -to xy_i:else#2:read_mem(out_tile_$i:rsc.@)
+}
 
 go extract
