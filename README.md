@@ -5,7 +5,7 @@
 |------|------|
 | 5/24 | :white_check_mark: 200 MHz clock |
 | 5/24 | :white_check_mark: Replace FIFOs for accumulation buffer with indexing |
-| 5/29 | Make sure MAC excutes every cycle (fix pipelining) |
+| 5/29 | :white_check_mark: Make sure MAC excutes every cycle (fix pipelining) |
 | 5/29 | PrimeTime power simulation |
 |      | Testbench to set up full ResNet on ImageNet in CPP and RTL |
 | 5/24 | Energy comparision with Xuan's model and ENVISION |
