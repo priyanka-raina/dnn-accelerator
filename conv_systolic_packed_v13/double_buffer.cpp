@@ -127,6 +127,7 @@ and window locations*/
 }
 
 #pragma hls_design block
+#pragma hls_pipeline_init_interval 1
 template<int size, int C_I>
 void address_generator_inputs(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
@@ -274,6 +275,7 @@ int outer_blocking = total_blocks / blocks_per_buffer;
 }
 
 #pragma hls_design block
+#pragma hls_pipeline_init_interval 1
 template<int size>
 void  address_generator_weights(ac_channel<Params> &params_stream,
                               ac_channel<int> &addresses, ac_channel<int> &address_sizes){
