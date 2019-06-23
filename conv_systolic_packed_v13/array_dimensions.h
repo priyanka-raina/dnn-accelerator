@@ -4,4 +4,6 @@
 #define ARRAY_DIMENSION 16
 #define REPEAT(x) BOOST_PP_REPEAT(ARRAY_DIMENSION, x, 0)
 
+#define PRECISION 16
+
 #endif

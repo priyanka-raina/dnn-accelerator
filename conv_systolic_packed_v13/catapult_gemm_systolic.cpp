@@ -28,9 +28,9 @@ template<typename DTYPE, int KI>
 class pe_template{
   private:
     DTYPE x_reg;
-    PackedStencil<DTYPE, KI, 1, 1> y_reg;
+    PackedStencil<PRECISION, KI, 1, 1> y_reg;
   public:
-    void exec(DTYPE &x_in, PackedStencil<DTYPE, KI, 1, 1> &y_in, PackedStencil<DTYPE, KI, 1, 1> &w, DTYPE &x_out, PackedStencil<DTYPE, KI, 1, 1> &y_out) {
+    void exec(DTYPE &x_in, PackedStencil<PRECISION, KI, 1, 1> &y_in, PackedStencil<PRECISION, KI, 1, 1> &w, DTYPE &x_out, PackedStencil<PRECISION, KI, 1, 1> &y_out) {
         // x_out = x_reg;
         // y_out = y_reg;
         x_reg = x_in;
@@ -44,24 +44,6 @@ class pe_template{
     }
 };
 
-#pragma hls_design block
-template<typename DTYPE, int KI, int size>
-class accum_buffer{
-  ac_int<8*sizeof(DTYPE)*KI, false> arr[size];
-  public:
-    ac_int<8*sizeof(DTYPE)*KI, false> read(int address){
-      return arr[address];
-    }
-
-    void write(ac_int<8*sizeof(DTYPE)*KI, false> val, int address){
-      arr[address] = val;
-    }
-
-};
-
-
-
-
 /*
 The systolic array is 4 X 4. unrolling C_I (=4) channels amd K_I (=4) kernels.
 The input and output of systolic array are streams of input, weight and output.
@@ -69,9 +51,9 @@ The input and output of systolic array are streams of input, weight and output.
 #pragma hls_design block
 #pragma hls_pipeline_init_interval 1
 template<typename DTYPE, int K_II, int K_I, int C_I, int X_I, int Y_I, int K>
-void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input, 
-                    ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &weight, 
-                    ac_channel<PackedStencil<DTYPE, K_II, K_I, 1> > &output,
+void systolic_array(ac_channel<PackedStencil<PRECISION, C_I, 1, 1> > &input, 
+                    ac_channel<PackedStencil<PRECISION, K_II, K_I, 1> > &weight, 
+                    ac_channel<PackedStencil<PRECISION, K_II, K_I, 1> > &output,
                     ac_channel<Params> &params_stream) {
 
   static Params params = params_stream.read();
@@ -85,18 +67,10 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   // local buffers to store partial output 
   // There are four of them because K_I = 4 
   #define OUT_TILE_INIT(z,i,unused)\
-    ac_int<8*sizeof(DTYPE)*K_II, false> BOOST_PP_CAT(out_tile_,i)[256];
+    ac_int<PRECISION*K_II, false> BOOST_PP_CAT(out_tile_,i)[256];
   REPEAT(OUT_TILE_INIT)
   #define MOD(x,y)\
     ( ( (x) % (y) + y ) % y )
-
-  // #define OUT_TILE_INIT(z,i,unused)\
-  //   accum_buffer<DTYPE, K_II, XY_I*512> BOOST_PP_CAT(out_tile_,i); 
-  // REPEAT(OUT_TILE_INIT)
-  // static accum_buffer<DTYPE, K_II, XY_I*32> out_tile_0;
-  // static accum_buffer<DTYPE, K_II, XY_I*32> out_tile_1;
-  // static accum_buffer<DTYPE, K_II, XY_I*32> out_tile_2;
-  // static accum_buffer<DTYPE, K_II, XY_I*32> out_tile_3;
 
   /*
   the registers that used for relaying input and output in horizonal and vertical directions respectively.
@@ -104,10 +78,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   PE[i][j] fetch output data from register out_tmp[i][j+1], at next cycle forward the data to out_tmp[i+1][j+1]
   */
   DTYPE in_tmp[C_I+1][K_I+1];
-  PackedStencil<DTYPE, K_II, 1, 1> out_tmp[C_I+1][K_I+1];
-
-  // PackedStencil<DTYPE, K_II> dummy_val;
-  // dummy_val.value = 0;
+  PackedStencil<PRECISION, K_II, 1, 1> out_tmp[C_I+1][K_I+1];
 
   //loop over image tiles
     #pragma hls_unroll no
@@ -129,11 +100,11 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   // loop inside each image tile
     #pragma hls_unroll no
   xy_i: for (int step = 0; step < K_I+C_I+XY_I-1; ++step) {
-        static PackedStencil<DTYPE,K_II, K_I> w_tile[C_I];
+        static PackedStencil<PRECISION,K_II, K_I> w_tile[C_I];
   
         // filling phase for systolic array, put data into local registers 
         if (step < C_I) {            
-          PackedStencil<DTYPE,K_II, K_I> w_row = weight.read();
+          PackedStencil<PRECISION,K_II, K_I> w_row = weight.read();
           w_tile[step] = w_row;
           /*#ifndef __SYNTHESIS__
           for (int col = 0; col<K_I; col++) {
@@ -145,7 +116,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   
         /* read input from the output stream of the double buffer,
         push input to fifos, and read input from fifos into local registers*/
-        PackedStencil<DTYPE, C_I,1,1> in_col;
+        PackedStencil<PRECISION, C_I,1,1> in_col;
         if (step < XY_I) {        
           in_col = input.read();
           /*#ifndef __SYNTHESIS__
@@ -157,7 +128,7 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
         }
  
         // The local registers serve data to the first column of PE array. 
-        PackedStencil<DTYPE, C_I,1,1> input_buf;
+        PackedStencil<PRECISION, C_I,1,1> input_buf;
 
         /* A trianglar shape of FIFOs, used for skewing the array front,
         such that the right input data comes to the right PE at the right timing.*/
@@ -171,44 +142,11 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
         printf("starting step %d - input %d %d %d %d\n", step, input_fifo_0,input_fifo_1,input_fifo_2,input_fifo_3);
         #endif*/
 
-        
-
-        // // local registers to store partial output
-        // #define TMP_ROW_BODY(z,i,unused) \
-        //   PackedStencil<DTYPE, K_II, 1, 1, 1> BOOST_PP_CAT(tmp_row_, i);
-        // REPEAT(TMP_ROW_BODY)
-
-        // if (step < XY_I) {
-        //   if(c_idx == 0 && wx_idx == 0 && wy_idx == 0) {
-        //         #pragma hls_unroll yes           
-        //         for (int sk = 0; sk < K_II; sk++) {
-        //           #define TMP_ROW_BODY_INIT(z,i,unused) \
-        //             BOOST_PP_CAT(tmp_row_, i)(0,sk,0,0,0);
-        //           REPEAT(TMP_ROW_BODY_INIT)
-
-        //         }
-        //   } else {
-        //     #define TMP_ROW_OUT(z,i,unused) \
-        //       BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[koi_idx*XY_I + step];
-        //     REPEAT(TMP_ROW_OUT)
-        //   }
-        // }
-       
-        // /* A trianglar shape of FIFOs, used for skewing the array front, 
-        // such that the right partial output data come to the right PE at the right timing*/ 
-        // PackedStencil<DTYPE, K_II, K_I,1> output_buf;
-          
-        // #define TMP_FIFO_BODY(z,i,unused) \
-        //   PackedStencil<DTYPE, K_II> BOOST_PP_CAT(tmp_fifo_,i);\
-        //   fifo<90000+i,PackedStencil<DTYPE,K_II>, i+1>( BOOST_PP_CAT(tmp_row_,i), BOOST_PP_CAT(tmp_fifo_,i) );\
-        //   output_buf.set_dim( BOOST_PP_CAT(tmp_fifo_, i), i,0,0);
-        // REPEAT(TMP_FIFO_BODY)
-
         #define TMP_ROW_BODY(z,i,unused) \
-          PackedStencil<DTYPE, K_II, 1, 1, 1> BOOST_PP_CAT(tmp_row_, i);
+          PackedStencil<PRECISION, K_II, 1, 1, 1> BOOST_PP_CAT(tmp_row_, i);
         REPEAT(TMP_ROW_BODY)
 
-        PackedStencil<DTYPE, K_II, K_I,1> output_buf;
+        PackedStencil<PRECISION, K_II, K_I,1> output_buf;
         // initial partial output of 0
         if(c_idx == 0 && wx_idx == 0 && wy_idx == 0) {
           #pragma hls_unroll yes           
@@ -245,21 +183,15 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
           }
     
           static DTYPE in_tmp2[C_I+1][K_I+1];
-          static PackedStencil<DTYPE, K_II, 1, 1> out_tmp2[C_I+1][K_I+1];
+          static PackedStencil<PRECISION, K_II, 1, 1> out_tmp2[C_I+1][K_I+1];
 
           // perform the a matrix multiplication in a systolic fashion 
           #pragma hls_unroll yes
           COL: for (int j=0; j < K_I; ++j) {
             #pragma hls_unroll yes
             ROW: for (int i=0; i < C_I; ++i) {
-              PackedStencil<DTYPE, K_II> weight_value = w_tile[i].get_dim(j,0,0);
-              // DTYPE in_tmp1 = in_tmp[i+1][j]; 
-              // PackedStencil<DTYPE, K_II, 1, 1> out_tmp1 = out_tmp[i][j+1];
-              // DTYPE in_tmp2;
-              // PackedStencil<DTYPE, K_II, 1, 1> out_tmp2;
+              PackedStencil<PRECISION, K_II> weight_value = w_tile[i].get_dim(j,0,0);
               pe[i][j].exec(in_tmp[i+1][j], out_tmp[i][j+1], weight_value, in_tmp2[i+1][j+1], out_tmp2[i+1][j+1]);
-              // in_tmp[i+1][j+1] = in_tmp2;
-              // out_tmp[i+1][j+1] = out_tmp2;
             } //ROW
           } //COL
 
@@ -267,10 +199,10 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
   
           /* A trianglar shape of FIFOs, used for skewing as well, 
           such that the right output data are collected at the right timing*/ 
-          PackedStencil<DTYPE, K_II, K_I> output_row;
+          PackedStencil<PRECISION, K_II, K_I> output_row;
     
           #define FIFO_WRITE_BODY(z,i,unused)\
-            PackedStencil<DTYPE, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
+            PackedStencil<PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
           REPEAT(FIFO_WRITE_BODY)
 
 
@@ -280,8 +212,8 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
     
           if (c_idx==params.C_O-1 && wx_idx == params.WS-1 && wy_idx == params.WS-1) {
               #define FIFO_WRITE_BODY_NEW(z,i,unused)\
-                PackedStencil<DTYPE, K_II> BOOST_PP_CAT(output_fifo_,i); \
-                fifo<0+i,PackedStencil<DTYPE, K_II>, K_I-i>( BOOST_PP_CAT(sys_array_out_,i), BOOST_PP_CAT(output_fifo_,i) );\
+                PackedStencil<PRECISION, K_II> BOOST_PP_CAT(output_fifo_,i); \
+                fifo<0+i,PackedStencil<PRECISION, K_II>, K_I-i>( BOOST_PP_CAT(sys_array_out_,i), BOOST_PP_CAT(output_fifo_,i) );\
                 output_row.set_dim( BOOST_PP_CAT(output_fifo_,i), i,0,0); 
               REPEAT(FIFO_WRITE_BODY_NEW)
 
@@ -296,10 +228,6 @@ void systolic_array(ac_channel<PackedStencil<DTYPE, C_I, 1, 1> > &input,
 
           // output row if one has completed
           if (step >= K_I+C_I-1) {
-            
-            // #define OUTPUT_ROW_BODY(z,i,unused)\
-            //   BOOST_PP_CAT(out_tile_,i).write(BOOST_PP_CAT(output_fifo_,i).value, (koo_idx*params.K_OI+koi_idx)*XY_I+step-(K_I+C_I-1)); 
-            // REPEAT(OUTPUT_ROW_BODY)
             if (c_idx==params.C_O-1 && wx_idx == params.WS-1 && wy_idx == params.WS-1) {
               output.write(output_row);
             }
@@ -361,17 +289,17 @@ Output data are accumulated inside systolic array, and streamed out.
 
 #pragma hls_design top
 #pragma hls_pipeline_init_interval 1
-void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input0, 
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight0, 
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output,
+void conv(ac_channel<PackedStencil<PRECISION,CI_NUM> > &input0, 
+          ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > &weight0, 
+          ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > &output,
           ac_channel<Params> &params_stream) {
 
   static ac_channel<Params> BOOST_PP_CAT(params_stream_level_, BOOST_PP_INC(BUFFER_LEVELS) );
 
   /** Macros for generating memory hierarchy and additional params **/
   #define MACRO_INPUT_INIT(r, state)\
-    static ac_channel<PackedStencil<DTYPE, CI_NUM> > BOOST_PP_CAT(input, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
-    static ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > BOOST_PP_CAT(weight, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
+    static ac_channel<PackedStencil<PRECISION, CI_NUM> > BOOST_PP_CAT(input, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
+    static ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > BOOST_PP_CAT(weight, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state))); \
     static ac_channel<Params> BOOST_PP_CAT(params_stream_level_, BOOST_PP_INC(BOOST_PP_TUPLE_ELEM(2,0,state)));
 
   BOOST_PP_FOR((0, BUFFER_LEVELS), PRED, OP, MACRO_INPUT_INIT)

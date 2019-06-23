@@ -42,7 +42,7 @@ SHIFT:for(int i=NUM_REGS-1; i>=0; i--) {
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int size, int C_I>
 void WRITE_BLOCK_INPUT(ac_channel<Params> &param_stream,
-                      ac_channel<PackedStencil<DTYPE,C_I> > &din,
+                      ac_channel<PackedStencil<PRECISION,C_I> > &din,
                       REPEAT(WRITE_BLOCK_INPUT_PARAMS)
                       ) {
 
@@ -64,7 +64,7 @@ int outer_blocking = total_blocks/inner_blocking;
         if(total_blocks > 0){
           
           for(int idx = 0; idx < block_size; idx++){
-            PackedStencil<DTYPE,C_I,1,1> column;
+            PackedStencil<PRECISION,C_I,1,1> column;
             column = din.read();
             
             #define WRITE_BLOCK_INPUT_TMP_WRITE(z, i, unused)\
@@ -92,7 +92,7 @@ int outer_blocking = total_blocks/inner_blocking;
 template <typename DTYPE, int size, int C_I>
 void READ_BLOCK_INPUT(ac_channel<Params> &param_stream, ac_channel<int> &addresses, ac_channel<int> &address_sizes,
                      REPEAT(READ_BLOCK_INPUT_PARAMS)
-                     ac_channel<PackedStencil<DTYPE, C_I,1,1> > &dout){
+                     ac_channel<PackedStencil<PRECISION, C_I,1,1> > &dout){
 
 static Params params = param_stream.read();
 
@@ -112,7 +112,7 @@ and window locations*/
 
         int address_size = address_sizes.read();
         for(int idx = 0; idx < address_size; idx++){
-          PackedStencil<DTYPE, C_I,1,1> dout_struct;
+          PackedStencil<PRECISION, C_I,1,1> dout_struct;
 
           int address = addresses.read();
 
@@ -189,7 +189,7 @@ void address_generator_inputs(ac_channel<Params> &params_stream,
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int size, int KI, int K_I>
 void WRITE_BLOCK_WEIGHTS(ac_channel<Params> &params_stream,
-                         ac_channel<PackedStencil<DTYPE, KI, K_I> > &din,
+                         ac_channel<PackedStencil<PRECISION, KI, K_I> > &din,
                          REPEAT(WRITE_BLOCK_WEIGHT_PARAMS)) {
 
 static Params params = params_stream.read();
@@ -209,7 +209,7 @@ for(int o_block = 0; o_block < outer_blocking+1; o_block++){
   for(int j = 0; j < blocks_per_buffer; j++){
     if(total_blocks > 0){
       for(int idx = 0; idx < block_size; idx++){
-        PackedStencil<DTYPE, KI, K_I> row;
+        PackedStencil<PRECISION, KI, K_I> row;
         row = din.read();
 
         #define WRITE_BLOCK_WEIGHT_TEMP_WRITE(z,i,unused)\
@@ -239,7 +239,7 @@ void READ_BLOCK_WEIGHTS(ac_channel<Params> &param_stream,
                         ac_channel<int> &addresses,
                         ac_channel<int> &address_sizes,
                         REPEAT(READ_BLOCK_WEIGHTS_PARAMS)
-                        ac_channel<PackedStencil<DTYPE, KI, K_I,1,1> > &dout){
+                        ac_channel<PackedStencil<PRECISION, KI, K_I,1,1> > &dout){
 
 static Params params = param_stream.read();
 
@@ -259,7 +259,7 @@ int outer_blocking = total_blocks / blocks_per_buffer;
         int address_size = address_sizes.read();
 
         for(int idx = 0; idx < address_size; idx++){
-          PackedStencil<DTYPE, KI, K_I> dout_struct;
+          PackedStencil<PRECISION, KI, K_I> dout_struct;
 
           int address = addresses.read();
 
@@ -345,10 +345,10 @@ void params_duplicator(ac_channel<Params> &params_stream,
 #pragma hls_design block
 #pragma hls_pipeline_init_interval 1
 template <typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K_I>
-void unified_double_buffer(ac_channel<PackedStencil<DTYPE, C_I> > &inputs_din, 
-                      ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
-                      ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
-                      ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out,
+void unified_double_buffer(ac_channel<PackedStencil<PRECISION, C_I> > &inputs_din, 
+                      ac_channel<PackedStencil<PRECISION, C_I> > &inputs_out,
+                      ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_in,
+                      ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_out,
                       ac_channel<Params> &params_stream){
   // input banks
   #define DOUBLE_BUFFER_INPUT_INIT(z,i,unused)\
@@ -440,18 +440,18 @@ void READ_HIERARCHICAL_BUFFER(ac_channel<chanStruct<DTYPE, size> > &shr_mem,
 
 /** Hierarchical Buffer **/
 template<typename DTYPE, int input_size, int weight_size, int C_I, int KI, int K_I>
-void hierarchical_buffer( ac_channel<PackedStencil<DTYPE, C_I> > &inputs_in, 
-                          ac_channel<PackedStencil<DTYPE, C_I> > &inputs_out,
-                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_in,
-                          ac_channel<PackedStencil<DTYPE, KI, K_I> > &weights_out,
+void hierarchical_buffer( ac_channel<PackedStencil<PRECISION, C_I> > &inputs_in, 
+                          ac_channel<PackedStencil<PRECISION, C_I> > &inputs_out,
+                          ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_in,
+                          ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_out,
                           ac_channel<Params> &params_stream){
   
   // Inputs
-  static ac_channel<chanStruct<PackedStencil<DTYPE, C_I>, input_size> > inputs_shr_mem;
+  static ac_channel<chanStruct<PackedStencil<PRECISION, C_I>, input_size> > inputs_shr_mem;
   static ac_channel<int> inputs_size;
 
   // Weights
-  static ac_channel<chanStruct<PackedStencil<DTYPE, KI, K_I>, weight_size> > weights_shr_mem;
+  static ac_channel<chanStruct<PackedStencil<PRECISION, KI, K_I>, weight_size> > weights_shr_mem;
   static ac_channel<int> weights_size;
 
   static ac_channel<Params> params_stream_address_generator_inputs;
@@ -469,9 +469,9 @@ void hierarchical_buffer( ac_channel<PackedStencil<DTYPE, C_I> > &inputs_in,
                     params_stream_write_weight,
                     params_stream_read_weight);
 
-  WRITE_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_in, inputs_shr_mem, inputs_size);
-  READ_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, C_I>, input_size>(inputs_shr_mem, inputs_size, inputs_out);
+  WRITE_HIERARCHICAL_BUFFER<PackedStencil<PRECISION, C_I>, input_size>(inputs_in, inputs_shr_mem, inputs_size);
+  READ_HIERARCHICAL_BUFFER<PackedStencil<PRECISION, C_I>, input_size>(inputs_shr_mem, inputs_size, inputs_out);
 
-  WRITE_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, KI, K_I>, weight_size>(weights_in, weights_shr_mem, weights_size);
-  READ_HIERARCHICAL_BUFFER<PackedStencil<DTYPE, KI, K_I>, weight_size>(weights_shr_mem, weights_size, weights_out);
+  WRITE_HIERARCHICAL_BUFFER<PackedStencil<PRECISION, KI, K_I>, weight_size>(weights_in, weights_shr_mem, weights_size);
+  READ_HIERARCHICAL_BUFFER<PackedStencil<PRECISION, KI, K_I>, weight_size>(weights_shr_mem, weights_size, weights_out);
 }

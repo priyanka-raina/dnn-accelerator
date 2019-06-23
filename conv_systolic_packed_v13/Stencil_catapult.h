@@ -8,7 +8,7 @@
 
 ///Forward declaration
 template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t EXTENT_3> struct Stencil;
-template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t EXTENT_3> struct PackedStencil;
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t EXTENT_3> struct PackedStencil;
 template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t EXTENT_3> struct AxiPackedStencil;
 
 
@@ -68,21 +68,21 @@ static inline void bitcast_to_type(ac_int<64, false>& in, double& out) {
 }
 
 #pragma hls_map_to_operator [CCORE]
-template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
   class PackedStencil {
     public:
 
-    ac_int<8*sizeof(T)*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false> value;
+    ac_int<width*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false> value;
     /** writer
      */
-    inline ac_int<8*sizeof(T), false>
-      operator()(ac_int<sizeof(T)*8, false> set_val, size_t index_0, size_t index_1, size_t index_2, size_t index_3) {
+    inline ac_int<width, false>
+      operator()(ac_int<width, false> set_val, size_t index_0, size_t index_1, size_t index_2, size_t index_3) {
 
 #ifndef __SYNTHESIS__
       assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
 #endif
 
-      const size_t word_length = sizeof(T) * 8; // in bits
+      const size_t word_length = width; // in bits
         const size_t lo = index_0 * word_length +
                           index_1 * EXTENT_0 * word_length +
                           index_2 * EXTENT_0 * EXTENT_1 * word_length +
@@ -93,14 +93,14 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
 
     /** reader
      */
-    ac_int<8*sizeof(T), false>
+    ac_int<width, false>
       operator()(size_t index_0, size_t index_1 = 0, size_t index_2 = 0, size_t index_3 = 0) const {
 
 #ifndef __SYNTHESIS__
       assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
 #endif
 
-      const size_t word_length = sizeof(T) * 8; // in bits
+      const size_t word_length = width; // in bits
         const size_t lo = index_0 * word_length +
                           index_1 * EXTENT_0 * word_length +
                           index_2 * EXTENT_0 * EXTENT_1 * word_length +
@@ -108,33 +108,33 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
       return value.template slc<word_length>((unsigned int)lo);
     }
 
-    // convert to Stencil
-    operator Stencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
-      Stencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
-#pragma hls_unroll yes
-      for(size_t idx_3 = 0; idx_3 < EXTENT_3; idx_3++)
-#pragma hls_unroll yes      
-        for(size_t idx_2 = 0; idx_2 < EXTENT_2; idx_2++)
-#pragma hls_unroll yes        
-	  for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++)
-#pragma hls_unroll yes	  
-	    for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-	      ac_int<sizeof(T) * 8, false> temp = operator()(idx_0, idx_1, idx_2, idx_3);
-	      bitcast_to_type(temp, res.value[idx_3][idx_2][idx_1][idx_0]);
-	    }
-      return res;
-    }
+//     // convert to Stencil
+//     operator Stencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
+//       Stencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
+// #pragma hls_unroll yes
+//       for(size_t idx_3 = 0; idx_3 < EXTENT_3; idx_3++)
+// #pragma hls_unroll yes      
+//         for(size_t idx_2 = 0; idx_2 < EXTENT_2; idx_2++)
+// #pragma hls_unroll yes        
+// 	  for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++)
+// #pragma hls_unroll yes	  
+// 	    for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+// 	      ac_int<width, false> temp = operator()(idx_0, idx_1, idx_2, idx_3);
+// 	      bitcast_to_type(temp, res.value[idx_3][idx_2][idx_1][idx_0]);
+// 	    }
+//       return res;
+//     }
 
-    // convert to AxiPackedStencil
-    operator AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
-      AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
-      res.value = value;
-      return res;
-    }
+    // // convert to AxiPackedStencil
+    // operator AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
+    //   AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
+    //   res.value = value;
+    //   return res;
+    // }
 
     // set 1st dim
-   void set_dim(PackedStencil<T, EXTENT_0> set_val, size_t index_1, size_t index_2, size_t index_3) {
-      const size_t word_length = sizeof(T) * 8; // in bits      
+   void set_dim(PackedStencil<width, EXTENT_0> set_val, size_t index_1, size_t index_2, size_t index_3) {
+      const size_t word_length = width; // in bits      
  #pragma hls_unroll yes	  
       for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
           const size_t lo = idx_0 * word_length +
@@ -142,14 +142,14 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
                 index_2 * EXTENT_0 * EXTENT_1 * word_length +
               index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
 
- 	  ac_int<sizeof(T) * 8, false> temp = set_val(idx_0);
+ 	  ac_int<width, false> temp = set_val(idx_0);
           value.set_slc((unsigned int)lo, temp);
       }
    } 
 
      // set 1st and 2nd dim
-   void set_dim(PackedStencil<T, EXTENT_0, EXTENT_1> set_val, size_t index_2, size_t index_3) {
-      const size_t word_length = sizeof(T) * 8; // in bits      
+   void set_dim(PackedStencil<width, EXTENT_0, EXTENT_1> set_val, size_t index_2, size_t index_3) {
+      const size_t word_length = width; // in bits      
  #pragma hls_unroll yes	  
       for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
  #pragma hls_unroll yes	  
@@ -159,7 +159,7 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
                 index_2 * EXTENT_0 * EXTENT_1 * word_length +
               index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
 
- 	  ac_int<sizeof(T) * 8, false> temp = set_val(idx_0, idx_1);
+ 	  ac_int<width, false> temp = set_val(idx_0, idx_1);
           value.set_slc((unsigned int)lo, temp);
       }
    } 
@@ -167,14 +167,14 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
  
 
    // get 1st dim
-   PackedStencil<T, EXTENT_0> get_dim(size_t index_1, size_t index_2, size_t index_3) {
-      PackedStencil<T, EXTENT_0> res;
-      const size_t word_length = sizeof(T) * 8; // in bits      
+   PackedStencil<width, EXTENT_0> get_dim(size_t index_1, size_t index_2, size_t index_3) {
+      PackedStencil<width, EXTENT_0> res;
+      const size_t word_length = width; // in bits      
  #pragma hls_unroll yes	  
       for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
         const size_t lo = idx_0 * word_length;
 
- 	    ac_int<sizeof(T) * 8, false> temp = operator()(idx_0, index_1, index_2, index_3);
+ 	    ac_int<width, false> temp = operator()(idx_0, index_1, index_2, index_3);
         res.value.set_slc((unsigned int)lo, temp);
       }
       return res; 
@@ -182,9 +182,9 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
 
 
    // get 1st and 2nd dim
-   PackedStencil<T, EXTENT_0, EXTENT_1> get_dim(size_t index_2, size_t index_3) {
-      PackedStencil<T, EXTENT_0, EXTENT_1> res;
-      const size_t word_length = sizeof(T) * 8; // in bits
+   PackedStencil<width, EXTENT_0, EXTENT_1> get_dim(size_t index_2, size_t index_3) {
+      PackedStencil<width, EXTENT_0, EXTENT_1> res;
+      const size_t word_length = width; // in bits
  #pragma hls_unroll yes	  
       for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
  #pragma hls_unroll yes	  
@@ -192,14 +192,14 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
           const size_t lo = idx_0 * word_length +
                   idx_1 * EXTENT_0 * word_length;
 
- 	  ac_int<sizeof(T) * 8, false> temp = operator()(idx_0, idx_1, index_2, index_3);
+ 	  ac_int<width, false> temp = operator()(idx_0, idx_1, index_2, index_3);
           res.value.set_slc((unsigned int)lo, temp);
       }
       return res; 
    } 
 
-   void add(PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> set_stencil, bool flag) {
-      const size_t word_length = sizeof(T) * 8; // in bits       
+   void add(PackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> set_stencil, bool flag) {
+      const size_t word_length = width; // in bits       
 #pragma hls_unroll yes
 //#pragma hls_pipeline_init_interval 1
       for(size_t idx_3 = 0; idx_3 < EXTENT_3; idx_3++)
@@ -213,7 +213,7 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
                 idx_1 * EXTENT_0 * word_length +
                 idx_2 * EXTENT_0 * EXTENT_1 * word_length +
                 idx_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;	        
-	      ac_int<sizeof(T) * 8, false> temp = operator()(idx_0, idx_1, idx_2, idx_3);
+	      ac_int<width, false> temp = operator()(idx_0, idx_1, idx_2, idx_3);
 	      if (flag == false) {temp = set_stencil(idx_0, idx_1, idx_2, idx_3);}
 	      else {
 	        temp += set_stencil(idx_0, idx_1, idx_2, idx_3);
@@ -224,9 +224,10 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
 
   };
 
+/*
 template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
   struct AxiPackedStencil {
-    ac_int<8*sizeof(T)*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0> value;
+    ac_int<width*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0> value;
     ac_int<1, false> last;
 
     // convert to PackedStencil
@@ -242,110 +243,112 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1,
       return (Stencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>)res;
     }
   };
+*/
 
 /** multi-dimension (up-to 4 dimensions) stencil struct
  */
-template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
-  struct Stencil {
-  public:
-    T value[EXTENT_3][EXTENT_2][EXTENT_1][EXTENT_0];
 
-    /** writer
-     */
-    inline T& operator()(T set_val, size_t index_0, size_t index_1, size_t index_2, size_t index_3) {
-        #ifndef __SYNTHESIS__
-      assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
-        #endif
-      value[index_3][index_2][index_1][index_0] = set_val;
-      return set_val;
-    }
+// template <typename T, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+//   struct Stencil {
+//   public:
+//     T value[EXTENT_3][EXTENT_2][EXTENT_1][EXTENT_0];
 
-    /** reader
-     */
-    inline const T& operator()(size_t index_0, size_t index_1 = 0, size_t index_2 = 0, size_t index_3 = 0) const {
-        #ifndef __SYNTHESIS__
-      assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
-        #endif
-      return value[index_3][index_2][index_1][index_0];
-    }
+//     /** writer
+//      */
+//     inline T& operator()(T set_val, size_t index_0, size_t index_1, size_t index_2, size_t index_3) {
+//         #ifndef __SYNTHESIS__
+//       assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
+//         #endif
+//       value[index_3][index_2][index_1][index_0] = set_val;
+//       return set_val;
+//     }
 
-    // convert to PackedStencil
-    operator PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
-      PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
-      const size_t word_length = sizeof(T) * 8; // in bits
-#pragma hls_unroll yes
-      for(size_t idx_3 = 0; idx_3 < EXTENT_3; idx_3++)
-#pragma hls_unroll yes      
-        for(size_t idx_2 = 0; idx_2 < EXTENT_2; idx_2++)
-#pragma hls_unroll yes        
-	  for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++)
-#pragma hls_unroll yes	  
-	    for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-            const size_t lo = idx_0 * word_length +
-                idx_1 * EXTENT_0 * word_length +
-                idx_2 * EXTENT_0 * EXTENT_1 * word_length +
-	      idx_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
-            ac_int<word_length, false> temp = bitcast_to_uint(value[idx_3][idx_2][idx_1][idx_0]);
-            res.value.set_slc((unsigned int)lo, temp);
-	    }
-      return res;
-    }
+//     /** reader
+//      */
+//     inline const T& operator()(size_t index_0, size_t index_1 = 0, size_t index_2 = 0, size_t index_3 = 0) const {
+//         #ifndef __SYNTHESIS__
+//       assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
+//         #endif
+//       return value[index_3][index_2][index_1][index_0];
+//     }
 
-    // convert to AxiPackedStencil
-    operator AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
-      PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res = *this;
-      return (AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>)res;
-    }
+//     // convert to PackedStencil
+//     operator PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
+//       PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res;
+//       const size_t word_length = sizeof(T) * 8; // in bits
+// #pragma hls_unroll yes
+//       for(size_t idx_3 = 0; idx_3 < EXTENT_3; idx_3++)
+// #pragma hls_unroll yes      
+//         for(size_t idx_2 = 0; idx_2 < EXTENT_2; idx_2++)
+// #pragma hls_unroll yes        
+// 	  for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++)
+// #pragma hls_unroll yes	  
+// 	    for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+//             const size_t lo = idx_0 * word_length +
+//                 idx_1 * EXTENT_0 * word_length +
+//                 idx_2 * EXTENT_0 * EXTENT_1 * word_length +
+// 	      idx_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
+//             ac_int<word_length, false> temp = bitcast_to_uint(value[idx_3][idx_2][idx_1][idx_0]);
+//             res.value.set_slc((unsigned int)lo, temp);
+// 	    }
+//       return res;
+//     }
 
-    //set 1st dim
-    void set_dim(Stencil<T, EXTENT_0> set_val, size_t index_1, size_t index_2, size_t index_3) {
-      const size_t word_length = sizeof(T) * 8; // in bits 
-#pragma hls_unroll yes	      
-      for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-          ac_int<word_length, false> temp = bitcast_to_uint(set_val[0][0][0][idx_0]);
-          bitcast_to_type(temp, value[index_3][index_2][index_1][idx_0]);
-      }
-    }
+//     // convert to AxiPackedStencil
+//     operator AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>() {
+//       PackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3> res = *this;
+//       return (AxiPackedStencil<T, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>)res;
+//     }
 
-    //set 1st and 2nd dim
-    void set_dim(Stencil<T, EXTENT_0, EXTENT_1> set_val, size_t index_2, size_t index_3) {
-      const size_t word_length = sizeof(T) * 8; // in bits 
-#pragma hls_unroll yes	      
-      for(size_t idx_1 = 0; idx_1 < EXTENT_0; idx_1++) 
-#pragma hls_unroll yes	      
-      for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-          ac_int<word_length, false> temp = bitcast_to_uint(set_val[0][0][idx_1][idx_0]);
-          bitcast_to_type(temp, value[index_3][index_2][idx_1][idx_0]);
-      }
-    }
+//     //set 1st dim
+//     void set_dim(Stencil<T, EXTENT_0> set_val, size_t index_1, size_t index_2, size_t index_3) {
+//       const size_t word_length = sizeof(T) * 8; // in bits 
+// #pragma hls_unroll yes	      
+//       for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+//           ac_int<word_length, false> temp = bitcast_to_uint(set_val[0][0][0][idx_0]);
+//           bitcast_to_type(temp, value[index_3][index_2][index_1][idx_0]);
+//       }
+//     }
+
+//     //set 1st and 2nd dim
+//     void set_dim(Stencil<T, EXTENT_0, EXTENT_1> set_val, size_t index_2, size_t index_3) {
+//       const size_t word_length = sizeof(T) * 8; // in bits 
+// #pragma hls_unroll yes	      
+//       for(size_t idx_1 = 0; idx_1 < EXTENT_0; idx_1++) 
+// #pragma hls_unroll yes	      
+//       for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+//           ac_int<word_length, false> temp = bitcast_to_uint(set_val[0][0][idx_1][idx_0]);
+//           bitcast_to_type(temp, value[index_3][index_2][idx_1][idx_0]);
+//       }
+//     }
 
 
-    //get 1st dim
-    Stencil<T, EXTENT_0> get_dim(size_t index_1, size_t index_2, size_t index_3) {
-      Stencil<T, EXTENT_0> res;
-      const size_t word_length = sizeof(T) * 8; // in bits 
-#pragma hls_unroll yes	      
-      for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-          ac_int<word_length, false> temp = bitcast_to_uint(value[index_3][index_2][index_1][idx_0]);
-          bitcast_to_type(temp, res.value[0][0][0][idx_0]);
-      }
-      return res;
-    }
+//     //get 1st dim
+//     Stencil<T, EXTENT_0> get_dim(size_t index_1, size_t index_2, size_t index_3) {
+//       Stencil<T, EXTENT_0> res;
+//       const size_t word_length = sizeof(T) * 8; // in bits 
+// #pragma hls_unroll yes	      
+//       for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+//           ac_int<word_length, false> temp = bitcast_to_uint(value[index_3][index_2][index_1][idx_0]);
+//           bitcast_to_type(temp, res.value[0][0][0][idx_0]);
+//       }
+//       return res;
+//     }
 
-    //get 1st and 2nd dim
-    Stencil<T, EXTENT_0, EXTENT_1> get_dim(size_t index_2, size_t index_3) {
-      Stencil<T, EXTENT_0, EXTENT_1> res;
-      const size_t word_length = sizeof(T) * 8; // in bits
-#pragma hls_unroll yes	      
-          for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
-#pragma hls_unroll yes	          
-            for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
-              ac_int<word_length, false> temp = bitcast_to_uint(value[index_3][index_2][idx_1][idx_0]);
-              bitcast_to_type(temp, res.value[0][0][idx_1][idx_0]);
-            }
-      return res;
-    }
-  };
+//     //get 1st and 2nd dim
+//     Stencil<T, EXTENT_0, EXTENT_1> get_dim(size_t index_2, size_t index_3) {
+//       Stencil<T, EXTENT_0, EXTENT_1> res;
+//       const size_t word_length = sizeof(T) * 8; // in bits
+// #pragma hls_unroll yes	      
+//           for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
+// #pragma hls_unroll yes	          
+//             for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+//               ac_int<word_length, false> temp = bitcast_to_uint(value[index_3][index_2][idx_1][idx_0]);
+//               bitcast_to_type(temp, res.value[0][0][idx_1][idx_0]);
+//             }
+//       return res;
+//     }
+//   };
 
 #ifndef HALIDE_ATTRIBUTE_ALIGN
   #ifdef _MSC_VER

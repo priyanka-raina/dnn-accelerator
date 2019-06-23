@@ -46,18 +46,16 @@
 #define BUFFER_LEVELS 1
 #define BUFFER_SIZES (1, 2) // Ordered from first level to last level
 
-#define PRECISION 16
-
 typedef ac_int<PRECISION> DTYPE; 
 
-void conv(ac_channel<PackedStencil<DTYPE,CI_NUM> > &input,
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &weight, 
-          ac_channel<PackedStencil<DTYPE, KII, KI_NUM> > &output,
+void conv(ac_channel<PackedStencil<PRECISION,CI_NUM> > &input,
+          ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > &weight, 
+          ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > &output,
           ac_channel<Params> &params_stream);
 
-void systolic_array(ac_channel<PackedStencil<DTYPE, CI_NUM,1,1> > &input, 
-                    ac_channel<PackedStencil<DTYPE, KII, CI_NUM*KI_NUM,1,1> > &weight, 
-                    ac_channel<PackedStencil<DTYPE, KII, KI_NUM,1,1> > &output);
+void systolic_array(ac_channel<PackedStencil<PRECISION, CI_NUM,1,1> > &input, 
+                    ac_channel<PackedStencil<PRECISION, KII, CI_NUM*KI_NUM,1,1> > &weight, 
+                    ac_channel<PackedStencil<PRECISION, KII, KI_NUM,1,1> > &output);
 
 
 #endif
