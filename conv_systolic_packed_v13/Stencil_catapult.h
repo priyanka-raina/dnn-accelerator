@@ -67,6 +67,119 @@ static inline void bitcast_to_type(ac_int<64, false>& in, double& out) {
   out = temp.f;
 }
 
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+using NewPackedStencil = ac_int<width*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false>;
+
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+ac_int<width, false> write(
+  NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+  ac_int<width, false> set_val, size_t index_0, size_t index_1, size_t index_2, size_t index_3){
+    #ifndef __SYNTHESIS__
+      assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
+    #endif
+
+    const size_t word_length = width; // in bits
+    const size_t lo = index_0 * word_length +
+                      index_1 * EXTENT_0 * word_length +
+                      index_2 * EXTENT_0 * EXTENT_1 * word_length +
+                      index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
+    
+    value.set_slc((unsigned int)lo, set_val);
+    return set_val;
+  }
+
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+ac_int<width, false> read(
+  NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+  size_t index_0, size_t index_1 = 0, size_t index_2 = 0, size_t index_3 = 0){
+    #ifndef __SYNTHESIS__
+      assert(index_0 < EXTENT_0 && index_1 < EXTENT_1 && index_2 < EXTENT_2 && index_3 < EXTENT_3);
+    #endif
+
+    const size_t word_length = width; // in bits
+    const size_t lo = index_0 * word_length +
+                      index_1 * EXTENT_0 * word_length +
+                      index_2 * EXTENT_0 * EXTENT_1 * word_length +
+                      index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
+    return value.template slc<word_length>((unsigned int)lo);
+  }
+
+  // set 1st dim
+  template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+  void set_dim(
+    NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+    NewPackedStencil<width, EXTENT_0> set_val, size_t index_1, size_t index_2, size_t index_3) {
+    const size_t word_length = width; // in bits      
+    #pragma hls_unroll yes	  
+    for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+      const size_t lo = idx_0 * word_length +
+                        index_1 * EXTENT_0 * word_length +
+                        index_2 * EXTENT_0 * EXTENT_1 * word_length +
+                        index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
+
+ 	    ac_int<width, false> temp = read<width, EXTENT_0>(set_val, idx_0);
+      value.set_slc((unsigned int)lo, temp);
+    }
+  }
+
+    // set 1st and 2nd dim
+    template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+   void set_dim(
+     NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+     NewPackedStencil<width, EXTENT_0, EXTENT_1> set_val, size_t index_2, size_t index_3) {
+      const size_t word_length = width; // in bits      
+ #pragma hls_unroll yes	  
+      for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
+ #pragma hls_unroll yes	  
+      for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+          const size_t lo = idx_0 * word_length +
+                idx_1 * EXTENT_0 * word_length +
+                index_2 * EXTENT_0 * EXTENT_1 * word_length +
+              index_3 * EXTENT_0 * EXTENT_1 * EXTENT_2 * word_length;
+
+ 	  ac_int<width, false> temp = read(set_val, idx_0, idx_1);
+    value.set_slc((unsigned int)lo, temp);
+      }
+   }
+
+   // get 1st dim
+   template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+   NewPackedStencil<width, EXTENT_0> get_dim(
+     NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+     size_t index_1, size_t index_2, size_t index_3) {
+      NewPackedStencil<width, EXTENT_0> res;
+      const size_t word_length = width; // in bits      
+ #pragma hls_unroll yes	  
+      for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+        const size_t lo = idx_0 * word_length;
+
+ 	    ac_int<width, false> temp = read<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>(value, idx_0, index_1, index_2, index_3);
+        res.set_slc((unsigned int)lo, temp);
+      }
+      return res; 
+   } 
+
+
+   // get 1st and 2nd dim
+   template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
+   NewPackedStencil<width, EXTENT_0, EXTENT_1> get_dim(
+     NewPackedStencil<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>& value,
+     size_t index_2, size_t index_3) {
+      NewPackedStencil<width, EXTENT_0, EXTENT_1> res;
+      const size_t word_length = width; // in bits
+      #pragma hls_unroll yes	  
+      for(size_t idx_1 = 0; idx_1 < EXTENT_1; idx_1++) 
+        #pragma hls_unroll yes	  
+        for(size_t idx_0 = 0; idx_0 < EXTENT_0; idx_0++) {
+          const size_t lo = idx_0 * word_length +
+                  idx_1 * EXTENT_0 * word_length;
+
+ 	        ac_int<width, false> temp = read<width, EXTENT_0, EXTENT_1, EXTENT_2, EXTENT_3>(value, idx_0, idx_1, index_2, index_3);
+          res.set_slc((unsigned int)lo, temp);
+      }
+      return res; 
+   }  
+
 #pragma hls_map_to_operator [CCORE]
 template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
   class PackedStencil {
