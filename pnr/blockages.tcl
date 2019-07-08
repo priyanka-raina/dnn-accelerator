@@ -1,0 +1,188 @@
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#0 -type hard \
+		-bbox {   40.000    40.000   500.500    40.270}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#1 -type hard \
+		-bbox {  964.600    40.000  2357.640    40.270}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#2 -type hard \
+		-bbox {   40.000    40.270    45.000   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#3 -type hard \
+		-bbox {   40.000   354.520   500.500   355.270}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#4 -type hard \
+		-bbox { 1897.000   354.520  2357.640   355.270}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#5 -type hard \
+		-bbox {   40.000   355.270    45.000   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#6 -type hard \
+		-bbox {   40.000   669.520   500.500   670.270}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#7 -type hard \
+		-bbox {   40.000   670.270    45.000   984.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#8 -type hard \
+		-bbox { 1897.000  1097.230  2357.640  1097.980}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#9 -type hard \
+		-bbox { 1897.000  1412.230  2357.640  1412.980}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#10 -type hard \
+		-bbox { 1897.000  1727.230  2357.640  1728.190}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#11 -type hard \
+		-bbox {   40.000  1727.980    45.000  2042.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#12 -type hard \
+		-bbox {   40.000  2042.230   500.500  2042.980}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#13 -type hard \
+		-bbox {   40.000  2042.980    45.000  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#14 -type hard \
+		-bbox {   40.000  2357.230   500.500  2357.500}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#15 -type hard \
+		-bbox {  560.500  2357.230  1399.400  2357.500}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#16 -type hard \
+		-bbox { 1664.250  2357.230  2357.640  2357.500}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#17 -type hard \
+		-bbox {  156.105    40.270   156.645   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#18 -type hard \
+		-bbox {  156.105   355.270   156.645   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#19 -type hard \
+		-bbox {  156.105   670.270   156.645   984.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#20 -type hard \
+		-bbox {  156.105  1727.980   156.645  2042.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#21 -type hard \
+		-bbox {  156.105  2042.980   156.645  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#22 -type hard \
+		-bbox {  267.750    40.270   277.750   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#23 -type hard \
+		-bbox {  267.750   355.270   277.750   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#24 -type hard \
+		-bbox {  267.750   670.270   277.750   984.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#25 -type hard \
+		-bbox {  267.750  1727.980   277.750  2042.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#26 -type hard \
+		-bbox {  267.750  2042.980   277.750  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#27 -type hard \
+		-bbox {  388.855    40.270   389.395   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#28 -type hard \
+		-bbox {  388.855   355.270   389.395   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#29 -type hard \
+		-bbox {  388.855   670.270   389.395   984.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#30 -type hard \
+		-bbox {  388.855  1727.980   389.395  2042.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#31 -type hard \
+		-bbox {  388.855  2042.980   389.395  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#32 -type hard \
+		-bbox {  671.605  2042.980   672.145  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#33 -type hard \
+		-bbox {  783.250  2042.980   793.250  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#34 -type hard \
+		-bbox {  904.355  2042.980   904.895  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#35 -type hard \
+		-bbox { 1016.000  2042.980  1026.560  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#36 -type hard \
+		-bbox { 1016.000  2182.790  1399.400  2183.330}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#37 -type hard \
+		-bbox { 1016.000  2183.330  1026.560  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#38 -type hard \
+		-bbox { 1016.000  2356.780  1399.400  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#39 -type hard \
+		-bbox { 1069.145  2009.340  1069.685  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#40 -type hard \
+		-bbox { 1069.145  2183.330  1069.685  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#41 -type hard \
+		-bbox { 1075.705    40.270  1076.245   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#42 -type hard \
+		-bbox { 1112.270  2009.340  1122.270  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#43 -type hard \
+		-bbox { 1112.270  2183.330  1122.270  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#44 -type hard \
+		-bbox { 1164.855  2009.340  1165.395  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#45 -type hard \
+		-bbox { 1164.855  2183.330  1165.395  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#46 -type hard \
+		-bbox { 1187.350    40.270  1197.350   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#47 -type hard \
+		-bbox { 1207.980  2009.340  1217.980  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#48 -type hard \
+		-bbox { 1207.980  2183.330  1217.980  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#49 -type hard \
+		-bbox { 1260.565  2009.340  1261.105  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#50 -type hard \
+		-bbox { 1260.565  2183.330  1261.105  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#51 -type hard \
+		-bbox { 1303.690  2009.340  1313.690  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#52 -type hard \
+		-bbox { 1303.690  2183.330  1313.690  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#53 -type hard \
+		-bbox { 1308.455    40.270  1308.995   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#54 -type hard \
+		-bbox { 1356.275  2009.340  1356.815  2182.790}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#55 -type hard \
+		-bbox { 1356.275  2183.330  1356.815  2356.780}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#56 -type hard \
+		-bbox { 1664.250  2042.440  2357.640  2042.980}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#57 -type hard \
+		-bbox { 1420.100    40.270  1430.800   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#58 -type hard \
+		-bbox { 1541.905    40.270  1542.445   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#59 -type hard \
+		-bbox { 1653.550    40.270  1663.550   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#60 -type hard \
+		-bbox { 1774.655    40.270  1775.195   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#61 -type hard \
+		-bbox { 1775.355  1728.190  1775.895  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#62 -type hard \
+		-bbox { 1775.355  2042.980  1775.895  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#63 -type hard \
+		-bbox { 1886.300    40.270  1897.000   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#64 -type hard \
+		-bbox { 1887.000  1728.190  1897.000  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#65 -type hard \
+		-bbox { 1887.000  2042.980  1897.000  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#66 -type hard \
+		-bbox { 2008.105    40.270  2008.645   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#67 -type hard \
+		-bbox { 2008.105   355.270  2008.645   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#68 -type hard \
+		-bbox { 2008.105   782.980  2008.645  1097.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#69 -type hard \
+		-bbox { 2008.105  1097.980  2008.645  1412.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#70 -type hard \
+		-bbox { 2008.105  1412.980  2008.645  1727.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#71 -type hard \
+		-bbox { 2008.105  1728.190  2008.645  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#72 -type hard \
+		-bbox { 2008.105  2042.980  2008.645  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#73 -type hard \
+		-bbox { 2119.750    40.270  2129.750   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#74 -type hard \
+		-bbox { 2119.750   355.270  2129.750   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#75 -type hard \
+		-bbox { 2119.750   782.980  2129.750  1097.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#76 -type hard \
+		-bbox { 2119.750  1097.980  2129.750  1412.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#77 -type hard \
+		-bbox { 2119.750  1412.980  2129.750  1727.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#78 -type hard \
+		-bbox { 2119.750  1728.190  2129.750  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#79 -type hard \
+		-bbox { 2119.750  2042.980  2129.750  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#80 -type hard \
+		-bbox { 2240.855    40.270  2241.395   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#81 -type hard \
+		-bbox { 2240.855   355.270  2241.395   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#82 -type hard \
+		-bbox { 2240.855   782.980  2241.395  1097.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#83 -type hard \
+		-bbox { 2240.855  1097.980  2241.395  1412.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#84 -type hard \
+		-bbox { 2240.855  1412.980  2241.395  1727.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#85 -type hard \
+		-bbox { 2240.855  1728.190  2241.395  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#86 -type hard \
+		-bbox { 2240.855  2042.980  2241.395  2357.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#87 -type hard \
+		-bbox { 2352.500    40.270  2357.640   354.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#88 -type hard \
+		-bbox { 2352.500   355.270  2357.640   669.520}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#89 -type hard \
+		-bbox { 2352.500   782.980  2357.640  1097.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#90 -type hard \
+		-bbox { 2352.500  1097.980  2357.640  1412.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#91 -type hard \
+		-bbox { 2352.500  1412.980  2357.640  1727.230}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#92 -type hard \
+		-bbox { 2352.500  1728.190  2357.640  2042.440}
+create_placement_blockage -name ICC_THIN_CHAN_PLACE_BLKG_#93 -type hard \
+		-bbox { 2352.500  2042.980  2357.640  2357.230}

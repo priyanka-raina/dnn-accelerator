@@ -1,7 +1,13 @@
 # Add files
-solution file add ./conv_ref.cpp -exclude true
-solution file add ./tb_gemm_systolic.cpp -exclude true
 solution file add ./catapult_gemm_systolic.cpp
+solution file add ./tb_gemm_systolic.cpp -exclude true
+solution file add ./conv_ref.h -exclude true
+solution file add ./double_buffer.cpp -exclude true
+solution file add ./conv.h -exclude true
+solution file add ./params.h -exclude true
+solution file add ./conv_ref.cpp -exclude true
+solution file add ./Stencil_catapult.h -exclude true
+solution file add ./array_dimensions.h -exclude true
 
 # Analyze the design
 go analyze
@@ -53,3 +59,8 @@ for {set i 0}  {$i < 16} {incr i} {
 }
 
 go extract
+
+project save
+
+# copy generated RTL to rtl folder
+file copy [solution get /SOLUTION_DIR]/concat_rtl.v ../rtl/concat_rtl.v
