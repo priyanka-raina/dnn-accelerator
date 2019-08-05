@@ -7,15 +7,16 @@
 | 5/24 | :white_check_mark: Replace FIFOs for accumulation buffer with indexing |
 | 5/29 | :white_check_mark: Make sure MAC excutes every cycle (fix pipelining) |
 | 5/29 | :white_check_mark: PrimeTime power simulation |
-|      | Testbench to set up full ResNet on ImageNet in CPP and RTL |
-| 5/24 | Energy comparision with Xuan's model and ENVISION |
-| 5/31 | Unify input and weight buffers |
-| 6/7  | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
-| 6/7  | Figure out where outputs go |
-| 6/14 | Register file in PEs |
-|      | Run 16x16 design through place and route flow |
-|      | :white_check_mark: Summarize HLS coding techniques used in the design |
-|      | Write ASPLOS paper |
+| 5/29 | :white_check_mark: Summarize HLS coding techniques used in the design |
+| 8/04 | Unify input and weight buffers |
+| 8/04 | Run 16x16 design through place and route flow (get Massimo to replicate the flow) |
+| 8/04 | Testbench to set up full ResNet on ImageNet in CPP and RTL |
+| 8/16 | Write ASPLOS paper |
+| 9/02 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
+| 9/02 | Energy comparision with Xuan's model and ENVISION |
+| 9/02 | Register file in PEs |
+|      | Figure out I/O multiplexing |
+|      | Configuration through JTAG (talk to Alex) |
 
 ## Analytical model and auto-scheduler
 https://github.com/xuanyoya/CNN-blocking/tree/dev
