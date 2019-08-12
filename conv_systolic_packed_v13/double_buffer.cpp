@@ -631,6 +631,73 @@ void unified_double_buffer(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs
   READ_BLOCK_WEIGHTS<DTYPE, weight_size, KI, K_I>(params_stream_read_weight, weights_addresses, weights_address_sizes, weights_shr_mem, weights_out);
 }
 
+#ifdef real_unified_buffer
+void WRITE_UNIFIED_BUFFER(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_in, 
+                          ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_in,
+                          ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > &bank_0,
+                          ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > &bank_1){
+int num_total_blocks = XY_O;
+
+    while(num_tot_blocks > 0){
+        int address = 0;
+        int sub_block_num = 0;
+        mem[banks];
+        int current_input_bank = 0;
+        int current_weight_bank = 1;
+        while(num_tot_blocks > 0 && space){
+            if(current_input_bank == 0){
+                int current_input_offset = (XY_I+K_I)*(sub_block_num/2);
+                int current_weight_offset = (XY_I+K_I)*(sub_block_num/2);
+            }
+            else{
+                int current_input_offset = K_I+(XY_I+K_I)*(sub_block_num/2);
+                int current_weight_offset = XY_I+(XY_I+K_I)*(sub_block_num/2);
+            }
+
+            offset = bank==0 ? (XY_I+KI)*(sub_block_num /2) : 
+            for(int i = 0; i < XY_I; i++){
+                mem[current_input_bank][current_input_offset + i] = read();
+            }
+            for(int i = 0; i < K_I; i++){
+                mem[current_weight_bank][current_weight_offset+i] = read();
+            }
+            sub_block_num++;
+
+            current_input_bank = !current_input_bank;
+            current_weight_bank = !current_weight_bank;
+        }
+    }
+                          }
+
+void READ_UNIFIED_BUFFER(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_out, 
+                          ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_out,
+                          ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > &bank_0,
+                          ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > &bank_1){
+int num_total_blocks = XY_O;
+
+while(num_tot_blocks > 0){
+
+}
+
+                          }
+                          
+#pragma hls_design block
+#pragma hls_pipeline_init_interval 1
+template <typename DTYPE, int bank_size, int C_I, int KI, int K_I>
+void real_unified_double_buffer(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_in, 
+                      ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_out,
+                      ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_in,
+                      ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_out,
+                      ac_channel<Params> &params_stream){
+  
+  static ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > bank_0;
+  static ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>, bank_size> > bank_1;
+
+  WRITE_UNIFIED_BUFFER(inputs_in, weights_in, bank_0, bank_1);
+  READ_UNIFIED_BUFFER(bank_0, bank_1, inputs_out, weights_out);
+}
+#endif
+
 template<typename DTYPE, int size>
 void WRITE_HIERARCHICAL_BUFFER(ac_channel<DTYPE> &din, 
                           ac_channel<chanStruct<DTYPE, size> > &shr_mem,
