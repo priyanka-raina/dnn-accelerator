@@ -17,23 +17,23 @@ struct chanStruct{
  };
 
 
-//FIFO implemented as shift registers
-// #pragma hls_map_to_operator [CCORE]
-template<int ID,typename DTYPE,int NUM_REGS> 
-void fifo(DTYPE din, DTYPE &dout) {
-  static DTYPE regs[NUM_REGS];
+// //FIFO implemented as shift registers
+// // #pragma hls_map_to_operator [CCORE]
+// template<int ID,typename DTYPE,int NUM_REGS> 
+// void fifo(DTYPE din, DTYPE &dout) {
+//   static DTYPE regs[NUM_REGS];
 
-#pragma hls_unroll yes
-SHIFT:for(int i=NUM_REGS-1; i>=0; i--) {
-    if (i==0) {
-      regs[i] = din;
-    } else {
-      regs[i] = regs[i-1];
-    }
- }
+// #pragma hls_unroll yes
+// SHIFT:for(int i=NUM_REGS-1; i>=0; i--) {
+//     if (i==0) {
+//       regs[i] = din;
+//     } else {
+//       regs[i] = regs[i-1];
+//     }
+//  }
 
-  dout = regs[NUM_REGS-1];
-}
+//   dout = regs[NUM_REGS-1];
+// }
 
 #define WRITE_BLOCK_INPUT_PARAMS(z, i, unused)\
   BOOST_PP_COMMA_IF(i) ac_channel<chanStruct<DTYPE,size> > BOOST_PP_CAT(&dout_,i)

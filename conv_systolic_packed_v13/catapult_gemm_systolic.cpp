@@ -10,6 +10,7 @@
 #include "double_buffer.cpp"
 #include "conv.h"
 #include "array_dimensions.h"
+#include "fifo.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
@@ -69,8 +70,19 @@ void systolic_array(ac_channel<NewPackedStencil<PRECISION, C_I, 1, 1> > &input,
   #define OUT_TILE_INIT(z,i,unused)\
     ac_int<PRECISION*K_II, false> BOOST_PP_CAT(out_tile_,i)[256];
   REPEAT(OUT_TILE_INIT)
+
   #define MOD(x,y)\
     ( ( (x) % (y) + y ) % y )
+  
+  #define INPUT_FIFOS_INIT(z,i,unused) \
+    static fifo<DTYPE, i+1> BOOST_PP_CAT(input_fifo_, i); 
+  REPEAT(INPUT_FIFOS_INIT)
+
+  #define OUTPUT_FIFOS_INIT(z,i,unused) \
+    static fifo<NewPackedStencil<PRECISION, K_II>, K_I-i> BOOST_PP_CAT(output_fifo_, i);
+  REPEAT(OUTPUT_FIFOS_INIT)
+
+        
 
   /*
   the registers that used for relaying input and output in horizonal and vertical directions respectively.
@@ -133,9 +145,10 @@ void systolic_array(ac_channel<NewPackedStencil<PRECISION, C_I, 1, 1> > &input,
         /* A trianglar shape of FIFOs, used for skewing the array front,
         such that the right input data comes to the right PE at the right timing.*/
         #define INPUT_FIFO_BODY(z,i,unused) \
-          BOOST_PP_CAT(DTYPE input_fifo_, i); \
-          fifo<60000+i,DTYPE,i+1>( read<PRECISION, C_I,1,1>(in_col, i ,0,0), BOOST_PP_CAT(input_fifo_, i));\
-          write<PRECISION, C_I,1,1>(input_buf, BOOST_PP_CAT(input_fifo_, i), i ,0,0,0);
+          DTYPE BOOST_PP_CAT(input_fifo_output_, i); \
+          DTYPE BOOST_PP_CAT(input_fifo_input_, i) = read<PRECISION, C_I,1,1>(in_col, i ,0,0); \
+          BOOST_PP_CAT(input_fifo_, i).run( BOOST_PP_CAT(input_fifo_input_, i) , BOOST_PP_CAT(input_fifo_output_, i) ); \
+          write<PRECISION, C_I,1,1>(input_buf, BOOST_PP_CAT(input_fifo_output_, i), i ,0,0,0);
         REPEAT(INPUT_FIFO_BODY)
   
         /*#ifndef __SYNTHESIS__
@@ -212,9 +225,9 @@ void systolic_array(ac_channel<NewPackedStencil<PRECISION, C_I, 1, 1> > &input,
     
           if (c_idx==params.C_O-1 && wx_idx == params.WS-1 && wy_idx == params.WS-1) {
               #define FIFO_WRITE_BODY_NEW(z,i,unused)\
-                NewPackedStencil<PRECISION, K_II> BOOST_PP_CAT(output_fifo_,i); \
-                fifo<0+i,NewPackedStencil<PRECISION, K_II>, K_I-i>( BOOST_PP_CAT(sys_array_out_,i), BOOST_PP_CAT(output_fifo_,i) );\
-                set_dim<PRECISION, K_II, K_I>(output_row, BOOST_PP_CAT(output_fifo_,i), i,0,0); 
+                NewPackedStencil<PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
+                BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(sys_array_out_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
+                set_dim<PRECISION, K_II, K_I>(output_row, BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
               REPEAT(FIFO_WRITE_BODY_NEW)
 
               
