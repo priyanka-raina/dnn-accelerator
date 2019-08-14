@@ -1,5 +1,5 @@
+set design_name conv
 
-set design_name $::env(DESIGN)
 set report_dir ./reports
 sh mkdir -p $report_dir
 

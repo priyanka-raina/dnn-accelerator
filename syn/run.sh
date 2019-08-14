@@ -1,10 +1,10 @@
 #! /bin/tcsh
-# Takes in top level design name as argument and
-# runs basic synthesis script
-setenv DESIGN conv
-if (-d $DESIGN) then
-  rm -rf $DESIGN
+
+# If directory exists, rename it to current date+time
+if (-d conv) then
+  mv conv conv.`date +%F-%T`
 endif
-mkdir $DESIGN
-cd $DESIGN
-dc_shell -o "$DESIGN_syn.log" -f ../run.tcl
+mkdir conv
+cd conv
+
+dc_shell -o conv_syn.log -f ../run.tcl
