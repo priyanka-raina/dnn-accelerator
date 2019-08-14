@@ -11,7 +11,7 @@
 | 8/04 | :white_check_mark: Testbench to set up full ResNet on ImageNet in CPP and RTL |
 | 8/07 | Unify input and weight buffers |
 | 8/07 | Run 16x16 design through place and route flow (get Massimo to replicate the flow) |
-| 8/11 | Rewrite code to use class-based hierarchy (should get better results)
+| 8/11 | :white_check_mark: Rewrite code to use class-based hierarchy (should get better results)
 | 8/16 | Write ASPLOS paper |
 | 9/02 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
 | 9/02 | Energy comparision with Xuan's model and ENVISION |
