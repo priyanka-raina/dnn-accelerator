@@ -4,14 +4,10 @@
 // Include mc_scverify.h for CCS_* macros
 #include <mc_scverify.h>
 
-template <typename DTYPE, int NUM_REGS>
-class fifo
-{
-private:
-    DTYPE regs[NUM_REGS];
-
+template<typename T, int NUM_REGS>
+class Fifo{
 public:
-    fifo()
+    Fifo()
     { // required constructor
 #pragma hls_unroll yes
         for (int i = 0; i < NUM_REGS; i++)
@@ -21,7 +17,7 @@ public:
     }
 
 #pragma hls_design interface ccore
-    void CCS_BLOCK(run)(DTYPE &input, DTYPE &output)
+    void CCS_BLOCK(run)(T &input, T &output)
     {
     SHIFT:
         for (int i = NUM_REGS - 1; i >= 0; i--)
@@ -38,5 +34,8 @@ public:
             output = regs[NUM_REGS - 1];
         }
     }
+
+private:
+    T regs[NUM_REGS];
 };
 #endif

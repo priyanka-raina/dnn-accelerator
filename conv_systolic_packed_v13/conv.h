@@ -42,6 +42,9 @@
 
 #define STRIDE      1
 
+#define INPUT_SIZE  128/2*1024/CI_NUM
+#define WEIGHT_SIZE 128/2*1024/CI_NUM
+
 // Memory Hierarchy
 #define BUFFER_LEVELS 1
 #define BUFFER_SIZES (1, 2) // Ordered from first level to last level
