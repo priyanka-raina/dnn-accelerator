@@ -9,11 +9,11 @@ class Fifo{
 public:
     Fifo()
     { // required constructor
-#pragma hls_unroll yes
-        for (int i = 0; i < NUM_REGS; i++)
-        {
-            regs[i] = 0;
-        }
+// #pragma hls_unroll yes
+//         for (int i = 0; i < NUM_REGS; i++)
+//         {
+//             regs[i].clear();
+//         }
     }
 
 #pragma hls_design interface ccore

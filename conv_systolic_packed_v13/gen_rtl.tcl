@@ -2,9 +2,12 @@ solution options set /Input/CppStandard c++11
 
 flow package require /SCVerify
 flow package option set /SCVerify/USE_CCS_BLOCK true
+flow package option set /SCVerify/USE_NCSIM true
 
 flow package require /NCSim
+
 solution options set Flows/NCSim/NCSIM_DOFILE dump_saif.do
+solution options set Flows/NCSim/NC_ROOT /cad/cadence/INCISIVE15.20.022/
 
 # Add files
 # solution file add ./catapult_gemm_systolic.cpp
@@ -56,29 +59,29 @@ go assembly
 
 # Reduce sharing overhead from default of 20% in order to meet clock constraint
 # TODO: find the optimal value between 0 and 20
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run -CLOCK_OVERHEAD 0.000000
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run -CLOCK_OVERHEAD 0.000000
 
 # set memory for accumulation buffer
 for {set i 0}  {$i < 16} {incr i} {
-    directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x16m4swbs_tt1v25c.TS6N28HPLA256X16M4SWBS
+    directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x16m4swbs_tt1v25c.TS6N28HPLA256X16M4SWBS
 }
 
 # set registers for arrays
 
 # directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/run/pe.x_reg:rsc -MAP_TO_MODULE {[Register]}
 # directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/run/pe.y_reg:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/out_tmp:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/w_tile:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/xy_i:in_tmp2:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArray<DTYPE,1,16,16,7,7,64>/run/xy_i:out_tmp2:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/in_tmp2:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tmp2.value:rsc -MAP_TO_MODULE {[Register]}
 
 go architect
 
 # ignore read/write memory dependencies for out_tile
 # the write_mem and read_mem addresses are always different so there isn't a real dependency
 for {set i 0}  {$i < 16} {incr i} {
-    ignore_memory_precedences -from xy_i:if#4:write_mem(out_tile_$i:rsc.@) -to xy_i:else#2:read_mem(out_tile_$i:rsc.@)
+    ignore_memory_precedences -from if#4:write_mem(out_tile_$i:rsc.@) -to else#2:read_mem(out_tile_$i:rsc.@)
 }
 
 go extract
@@ -89,4 +92,4 @@ project save
 file copy -force [solution get /SOLUTION_DIR]/concat_rtl.v ../rtl/concat_rtl.v
 
 # run simulation in NCSim and create saif dump
-flow run /SCVerify/launch_make [solution get /SOLUTION_DIR]/scverify/Verify_rtl_v_msim.mk {} SIMTOOL=ncsim sim
+flow run /SCVerify/launch_make [solution get /SOLUTION_DIR]/scverify/Verify_rtl_v_ncsim.mk {} SIMTOOL=ncsim sim

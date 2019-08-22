@@ -12,18 +12,18 @@ public:
 #pragma hls_design interface ccore
     void CCS_BLOCK(run)(
         DTYPE &input_in,
-        NewPackedStencil<PRECISION, KI, 1, 1> &psum_in,
-        NewPackedStencil<PRECISION, KI, 1, 1> &weight,
+        PackedStencil<PRECISION, KI, 1, 1> &psum_in,
+        PackedStencil<PRECISION, KI, 1, 1> &weight,
         DTYPE &input_out,
-        NewPackedStencil<PRECISION, KI, 1, 1> &psum_out)
+        PackedStencil<PRECISION, KI, 1, 1> &psum_out)
     {
         input_reg = input_in;
         weight_reg = weight;
         psum_reg = psum_in;
 
         MAC: for(int i = 0; i < KI; i++){
-            DTYPE tmp = input_reg * read<PRECISION, KI, 1, 1>(weight_reg, i, 0, 0) + read<PRECISION, KI, 1, 1>(psum_reg, i, 0, 0);
-            write<PRECISION, KI, 1, 1>(psum_reg, tmp, i, 0, 0, 0);
+            DTYPE tmp = input_reg * weight_reg.read(i, 0, 0) + psum_reg.read(i, 0, 0);
+            psum_reg.write(tmp, i, 0, 0, 0);
         }
         
         input_out = input_reg;
@@ -32,8 +32,8 @@ public:
 
 private:
     DTYPE input_reg;
-    NewPackedStencil<PRECISION, KI, 1, 1> weight_reg;
-    NewPackedStencil<PRECISION, KI, 1, 1> psum_reg;
+    PackedStencil<PRECISION, KI, 1, 1> weight_reg;
+    PackedStencil<PRECISION, KI, 1, 1> psum_reg;
 };
 
 #endif

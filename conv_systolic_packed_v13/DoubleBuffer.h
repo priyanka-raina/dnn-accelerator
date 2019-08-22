@@ -20,8 +20,8 @@ public:
 
     #pragma hls_design interface
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
-                        ac_channel<NewPackedStencil<PRECISION,C_I> > &din,
-                        ac_channel<chanStruct<NewPackedStencil<PRECISION,C_I>,size> > &dout){
+                        ac_channel<PackedStencil<PRECISION,C_I> > &din,
+                        ac_channel<chanStruct<PackedStencil<PRECISION,C_I>,size> > &dout){
         #ifndef __SYNTHESIS__
         while(paramsIn.available(1))
         #endif
@@ -32,13 +32,13 @@ public:
             int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
 
              while(total_blocks > 0){
-                chanStruct<NewPackedStencil<PRECISION,C_I>,size> tmp;
+                chanStruct<PackedStencil<PRECISION,C_I>,size> tmp;
 
                 int current_buffer_size = 0;
                 int block_in_buffer = 0;
                 while(total_blocks > 0 &&  (current_buffer_size+block_size <= size ) ){
                 for(int idx = 0; idx < block_size; idx++){
-                    NewPackedStencil<PRECISION,C_I,1,1> column;
+                    PackedStencil<PRECISION,C_I,1,1> column;
                     column = din.read();
                     tmp.data[current_buffer_size+idx] = column;
                 }
@@ -60,9 +60,9 @@ public:
 
     #pragma hls_design interface
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
-                        ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>,size> > &din, 
+                        ac_channel<chanStruct<PackedStencil<PRECISION, C_I>,size> > &din, 
                         ac_channel<int> &addresses, ac_channel<int> &address_sizes,
-                        ac_channel<NewPackedStencil<PRECISION, C_I,1,1> > &dout)
+                        ac_channel<PackedStencil<PRECISION, C_I,1,1> > &dout)
     {
         #ifndef __SYNTHESIS__
         while(paramsIn.available(1))
@@ -75,14 +75,11 @@ public:
 
             #pragma hls_pipeline_init_interval 1
             while(total_block_size > 0){
-                chanStruct<NewPackedStencil<PRECISION, C_I,1,1>, size> tmp = din.read();
+                chanStruct<PackedStencil<PRECISION, C_I,1,1>, size> tmp = din.read();
 
                 int address_size = address_sizes.read();
-                #ifndef __SYNTHESIS__
-                    printf("read: %d\n", address_size);
-                #endif
                 for(int idx = 0; idx < address_size; idx++){
-                    NewPackedStencil<PRECISION, C_I,1,1> dout_struct;
+                    PackedStencil<PRECISION, C_I,1,1> dout_struct;
 
                     int address = addresses.read();
 
@@ -171,8 +168,8 @@ public:
 
   #pragma hls_design interface
   #pragma hls_pipeline_init_interval 1
-  void CCS_BLOCK(run)(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_in, 
-                      ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_out,
+  void CCS_BLOCK(run)(ac_channel<PackedStencil<PRECISION, C_I> > &inputs_in, 
+                      ac_channel<PackedStencil<PRECISION, C_I> > &inputs_out,
                       ac_channel<Params> &paramsIn){
     #ifndef __SYNTHESIS__
     while(paramsIn.available(1))
@@ -191,7 +188,7 @@ public:
   }
 
 private:
-    ac_channel<chanStruct<NewPackedStencil<PRECISION, C_I>,size> > mem;
+    ac_channel<chanStruct<PackedStencil<PRECISION, C_I>,size> > mem;
     
     InputBankWriter<size, C_I> inputBankWriter;
     ac_channel<Params> inputBankWriterParams;
@@ -212,8 +209,8 @@ public:
 
     #pragma hls_design interface
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
-                        ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &din,
-                        ac_channel<chanStruct<NewPackedStencil<PRECISION, KI, K_I>, size> > &dout){
+                        ac_channel<PackedStencil<PRECISION, KI, K_I> > &din,
+                        ac_channel<chanStruct<PackedStencil<PRECISION, KI, K_I>, size> > &dout){
         #ifndef __SYNTHESIS__
         while(paramsIn.available(1))
         #endif
@@ -224,14 +221,14 @@ public:
             int block_size = params.C_I*params.K_OI*params.WS*params.WS;
 
              while(total_blocks > 0){
-                chanStruct<NewPackedStencil<PRECISION, KI, K_I>, size> tmp;
+                chanStruct<PackedStencil<PRECISION, KI, K_I>, size> tmp;
 
                 int current_buffer_size = 0;
                 int block_in_buffer = 0;
                 while(total_blocks > 0 &&  (current_buffer_size+block_size <= size ) ){
 
                     for(int idx = 0; idx < block_size; idx++){
-                        NewPackedStencil<PRECISION, KI, K_I> row;
+                        PackedStencil<PRECISION, KI, K_I> row;
                         row = din.read();
                         tmp.data[current_buffer_size+idx] = row;
                     }
@@ -253,9 +250,9 @@ public:
 
     #pragma hls_design interface
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
-                        ac_channel<chanStruct<NewPackedStencil<PRECISION, KI, K_I>,size> > &din, 
+                        ac_channel<chanStruct<PackedStencil<PRECISION, KI, K_I>,size> > &din, 
                         ac_channel<int> &addresses, ac_channel<int> &address_sizes,
-                        ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &dout)
+                        ac_channel<PackedStencil<PRECISION, KI, K_I> > &dout)
     {
         #ifndef __SYNTHESIS__
         while(paramsIn.available(1))
@@ -268,12 +265,12 @@ public:
 
             #pragma hls_pipeline_init_interval 1
             while(total_block_size > 0){
-                chanStruct<NewPackedStencil<PRECISION, KI, K_I>,size> tmp = din.read();
+                chanStruct<PackedStencil<PRECISION, KI, K_I>,size> tmp = din.read();
 
                 int address_size = address_sizes.read();
                 
                 for(int idx = 0; idx < address_size; idx++){
-                    NewPackedStencil<PRECISION, KI, K_I> dout_struct;
+                    PackedStencil<PRECISION, KI, K_I> dout_struct;
 
                     int address = addresses.read();
 
@@ -357,8 +354,8 @@ public:
 
   #pragma hls_design interface
   #pragma hls_pipeline_init_interval 1
-  void CCS_BLOCK(run)(ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_in, 
-                      ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_out,
+  void CCS_BLOCK(run)(ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_in, 
+                      ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_out,
                       ac_channel<Params> &paramsIn){
     #ifndef __SYNTHESIS__
     while(paramsIn.available(1))
@@ -377,7 +374,7 @@ public:
   }
 
 private:
-    ac_channel<chanStruct<NewPackedStencil<PRECISION, KI, K_I>,size> > mem;
+    ac_channel<chanStruct<PackedStencil<PRECISION, KI, K_I>,size> > mem;
     
     WeightBankWriter<size, KI, K_I> weightBankWriter;
     ac_channel<Params> weightBankWriterParams;
@@ -397,10 +394,10 @@ public:
     DoubleBuffer(){}
 
 #pragma hls_design interface
-    void CCS_BLOCK(run)(ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_in, 
-                      ac_channel<NewPackedStencil<PRECISION, C_I> > &inputs_out,
-                      ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_in,
-                      ac_channel<NewPackedStencil<PRECISION, KI, K_I> > &weights_out,
+    void CCS_BLOCK(run)(ac_channel<PackedStencil<PRECISION, C_I> > &inputs_in, 
+                      ac_channel<PackedStencil<PRECISION, C_I> > &inputs_out,
+                      ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_in,
+                      ac_channel<PackedStencil<PRECISION, KI, K_I> > &weights_out,
                       ac_channel<Params> &paramsIn){
     
         #ifndef __SYNTHESIS__
