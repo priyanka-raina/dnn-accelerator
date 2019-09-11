@@ -9,13 +9,14 @@
 | 5/29 | :white_check_mark: PrimeTime power simulation |
 | 5/29 | :white_check_mark: Summarize HLS coding techniques used in the design |
 | 8/04 | :white_check_mark: Testbench to set up full ResNet on ImageNet in CPP and RTL |
-| 8/07 | Unify input and weight buffers |
-| 8/07 | Run 16x16 design through place and route flow (get Massimo to replicate the flow) |
-| 8/11 | :white_check_mark: Rewrite code to use class-based hierarchy (should get better results)
-| 8/16 | Write ASPLOS paper |
-| 9/02 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
-| 9/02 | Energy comparision with Xuan's model and ENVISION |
-| 9/02 | Register file in PEs |
+| 8/11 | :white_check_mark: Rewrite code to use class-based hierarchy (should get better results) |
+| 8/07 | :white_check_mark: Unify input and weight buffers (done, but still functions) |
+| 8/07 | :white_check_mark: Run 16x16 design through place and route flow (get Massimo to replicate the flow)|
+| 9/17 | Get unified input and weight buffer to work with hierarchical |
+| 9/24 | Fix setup, hold, DRC in post P&R design |
+| 9/30 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
+| 9/30 | Energy comparision with Xuan's model and ENVISION |
+| 9/30 | Register file in PEs |
 |      | Figure out I/O multiplexing |
 |      | Configuration through JTAG (talk to Alex) |
 
