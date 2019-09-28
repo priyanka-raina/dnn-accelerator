@@ -3,6 +3,7 @@ solution options set /Input/CppStandard c++11
 flow package require /SCVerify
 flow package option set /SCVerify/USE_CCS_BLOCK true
 flow package option set /SCVerify/USE_NCSIM true
+flow package option set /SCVerify/USE_VCS true
 
 flow package require /NCSim
 
@@ -21,15 +22,15 @@ solution options set Flows/NCSim/NC_ROOT /cad/cadence/INCISIVE15.20.022/
 # solution file add ./array_dimensions.h -exclude true
 
 solution file add ./conv_top.cpp
-solution file add ./DoubleBuffer.h -exclude true
-solution file add ./SystolicArray.h -exclude true
-solution file add ./ProcessingElement.h -exclude true
-solution file add ./conv.h -exclude true
-solution file add ./params.h -exclude true
-solution file add ./conv_ref.cpp -exclude true
-solution file add ./Stencil_catapult.h -exclude true
-solution file add ./array_dimensions.h -exclude true
-solution file add ./fifo.h -exclude true
+# solution file add ./DoubleBuffer.h -exclude true
+# solution file add ./SystolicArray.h -exclude true
+# solution file add ./ProcessingElement.h -exclude true
+# solution file add ./conv.h -exclude true
+# solution file add ./params.h -exclude true
+# solution file add ./conv_ref.cpp -exclude true
+# solution file add ./Stencil_catapult.h -exclude true
+# solution file add ./array_dimensions.h -exclude true
+# solution file add ./fifo.h -exclude true
 solution file add ./tb_gemm_systolic.cpp -exclude true
 
 # Analyze the design
@@ -52,29 +53,32 @@ go libraries
 
 # set clock
 directive set -CLOCKS {clk {-CLOCK_PERIOD 5 -CLOCK_EDGE rising -CLOCK_HIGH_TIME 2.5 -CLOCK_OFFSET 0.000000 -CLOCK_UNCERTAINTY 0.0 -RESET_KIND sync -RESET_SYNC_NAME rst -RESET_SYNC_ACTIVE high -RESET_ASYNC_NAME arst_n -RESET_ASYNC_ACTIVE low -ENABLE_NAME {} -ENABLE_ACTIVE high}}
+directive set /conv -OUTPUT_DELAY 4.95 
+
 # map to CCORE
 # directive set /conv/pe_template<DTYPE,1>::exec -MAP_TO_MODULE {[CCORE]}
-
 go assembly
 
 # Reduce sharing overhead from default of 20% in order to meet clock constraint
 # TODO: find the optimal value between 0 and 20
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run -CLOCK_OVERHEAD 0.000000
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run -CLOCK_OVERHEAD 0.000000
 
 # set memory for accumulation buffer
 for {set i 0}  {$i < 16} {incr i} {
-    directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x16m4swbs_tt1v25c.TS6N28HPLA256X16M4SWBS
+    directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
 }
 
 # set registers for arrays
 
 # directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/run/pe.x_reg:rsc -MAP_TO_MODULE {[Register]}
 # directive set /conv/systolic_array<DTYPE,1,16,16,7,7,64>/run/pe.y_reg:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/in_tmp2:rsc -MAP_TO_MODULE {[Register]}
-directive set /conv/SystolicArrayCore<DTYPE,1,16,16,7,7,64>/run/out_tmp2.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/in_tmp2:rsc -MAP_TO_MODULE {[Register]}
+directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/out_tmp2.value:rsc -MAP_TO_MODULE {[Register]}
+
+#directive set /conv -REGISTER_OUTPUT true
 
 go architect
 
@@ -92,4 +96,4 @@ project save
 file copy -force [solution get /SOLUTION_DIR]/concat_rtl.v ../rtl/concat_rtl.v
 
 # run simulation in NCSim and create saif dump
-flow run /SCVerify/launch_make [solution get /SOLUTION_DIR]/scverify/Verify_rtl_v_ncsim.mk {} SIMTOOL=ncsim sim
+# flow run /SCVerify/launch_make [solution get /SOLUTION_DIR]/scverify/Verify_concat_rtl_v_msim.mk {} SIMTOOL=msim sim

@@ -9,9 +9,9 @@
 
 #ifndef _GLOBAL_SIMPLE_H
 #define _GLOBAL_SIMPLE_H
-#define SC_INCLUDE_FX
+// #define SC_INCLUDE_FX
 #include "ac_int.h"
-#include "ac_fixed.h"
+// #include "ac_fixed.h"
 #include <ac_channel.h>
 #include "Stencil_catapult.h"
 #include "params.h"
@@ -49,7 +49,8 @@
 #define BUFFER_LEVELS 1
 #define BUFFER_SIZES (1, 2) // Ordered from first level to last level
 
-typedef ac_int<PRECISION> DTYPE; 
+typedef ac_int<INPUT_PRECISION,true> IDTYPE; 
+typedef ac_int<OUTPUT_PRECISION,true> ODTYPE; 
 
 // void conv(ac_channel<PackedStencil<PRECISION,CI_NUM> > &input,
 //           ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > &weight, 

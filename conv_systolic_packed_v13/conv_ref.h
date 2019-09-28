@@ -9,13 +9,13 @@
 
 #ifndef __CONV_REF__
 #define __CONV_REF__
-#define SC_INCLUDE_FX
+// #define SC_INCLUDE_FX
 #include "ac_int.h"
 
 #include "conv.h"
-void conv_ref( DTYPE input[(OROW*STRIDE+W_SIZE-1)][(OCOL*STRIDE+W_SIZE-1)][C_NUM], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
-               DTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM], // R_TILE=CI_NUM, X_TILE=KI_NUM
-               DTYPE output[OROW][OCOL][K_NUM]);
+void conv_ref( IDTYPE input[(OROW*STRIDE+W_SIZE-1)][(OCOL*STRIDE+W_SIZE-1)][C_NUM], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
+               IDTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM], // R_TILE=CI_NUM, X_TILE=KI_NUM
+               ODTYPE output[OROW][OCOL][K_NUM]);
 
 #endif
 

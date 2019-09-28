@@ -7,28 +7,36 @@
 // MENTOR GRAPHICS CORPORATION OR ITS LICENSORS AND IS SUBJECT TO LICENSE TERMS.
 // 
 
-
+// #include <mc_scverify.h>
 #include "Stencil_catapult.h"
-#include "conv_ref.h"
 
-#include <mc_scverify.h>
+
+// #undef CCS_SCVERIFY
+// #include <mc_scverify.h>
+// #define CCS_SCVERIFY
+
 #include "conv.h"
-#include "conv_top.cpp"
-
 #include "params.h"
 
-#define DEBUG
+#include "conv_ref.cpp"
+#include "conv_top.cpp"
+
+// #undef CCS_SCVERIFY
+// #include <mc_scverify.h>
+// #define CCS_SCVERIFY
+
+
 
 CCS_MAIN(int argc, char *argv[]) 
 {
   
-    DTYPE input[(OROW+W_SIZE-1)][(OCOL+W_SIZE-1)][C_NUM]; 
-    DTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM]; 
-    DTYPE output_ref[OROW][OCOL][K_NUM];
+    IDTYPE input[(OROW+W_SIZE-1)][(OCOL+W_SIZE-1)][C_NUM]; 
+    IDTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM]; 
+    ODTYPE output_ref[OROW][OCOL][K_NUM];
   
-    static ac_channel<PackedStencil<PRECISION, CI_NUM> > input_stream;
-    static ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > weight_stream;
-    static ac_channel<PackedStencil<PRECISION, KII, KI_NUM> > output_stream;
+    static ac_channel<PackedStencil<INPUT_PRECISION, CI_NUM> > input_stream;
+    static ac_channel<PackedStencil<INPUT_PRECISION, KII, KI_NUM> > weight_stream;
+    static ac_channel<PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> > output_stream;
   
   
     int errCnt = 0;
@@ -38,7 +46,7 @@ CCS_MAIN(int argc, char *argv[])
     for (int row = 0; row < OROW + W_SIZE -1; row++) {
       for (int col = 0; col < OCOL + W_SIZE -1; col++) {
         for (int c = 0; c < C_NUM; c++) {
-          input[row][col][c] = (DTYPE)rand(); 
+          input[row][col][c] = (IDTYPE)rand(); 
         }
       }
     }
@@ -49,7 +57,7 @@ CCS_MAIN(int argc, char *argv[])
         for (int c=0; c<CO_NUM; c++) {
           for (int p = 0; p < OROW_I + W_SIZE - 1; p++ ){
             for (int j = 0; j < OCOL_I + W_SIZE - 1; j++ ){
-              PackedStencil<PRECISION, CI_NUM> input_col;
+              PackedStencil<INPUT_PRECISION, CI_NUM> input_col;
               for (int i = 0; i < CI_NUM; i++ ){
                 input_col.write(input[ro*OROW_I+p][co*OCOL_I+j][c*CI_NUM+i], i,0,0,0);
               }  // for i
@@ -68,14 +76,14 @@ CCS_MAIN(int argc, char *argv[])
       for (int wx = 0; wx < W_SIZE; wx++) {  
         for (int c = 0; c < C_NUM; c++) {
           for (int k = 0; k < K_NUM; k++) {
-            weight[wy][wx][c][k] = (DTYPE)rand();  
+            weight[wy][wx][c][k] = (IDTYPE)rand();  
           }
         }  
       }
     }
     
     // streaming weight to the interface
-    PackedStencil<PRECISION, KII, KI_NUM> weight_row;
+    PackedStencil<INPUT_PRECISION, KII, KI_NUM> weight_row;
     for (int ro = 0; ro < OROW_O; ro++) {
       for (int co = 0; co < OCOL_O; co++) {     
         for(int koo = 0; koo < KOO_NUM; koo++){
@@ -107,8 +115,9 @@ CCS_MAIN(int argc, char *argv[])
 
     // Main function call
     // launch hardware design
-    conv *conv_design = new conv;
-    conv_design->run(input_stream,weight_stream,output_stream, params_stream);
+    // conv *conv_design = new conv;
+    conv conv_design;
+    conv_design.run(input_stream,weight_stream,output_stream, params_stream);
 
     // run reference model
     conv_ref(input, weight, output_ref);          
@@ -121,15 +130,15 @@ CCS_MAIN(int argc, char *argv[])
           for (int k = 0; k < KO_NUM; k++) {
             for (int p = 0; p < OROW_I; p++ ){
               for (int i = 0; i < OCOL_I; i++ ){
-                PackedStencil<PRECISION, KII, KI_NUM> output_col = output_stream.read();
+                PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> output_col = output_stream.read();
                 for (int j = 0; j < KI_NUM; j++) {
                   for (int jj = 0; jj < KII; jj++) {
-                    DTYPE out_value = output_col.read(jj, j);
-                    if((int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj] != (int)out_value) {
+                    ODTYPE out_value = output_col.read(jj, j);
+                    if((long long)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj] != (long long)out_value) {
                       printf("***ERROR***\n");
                       CCS_RETURN(0);
                       errCnt++;
-                      printf("output[%d][%d][%d] = %d, ref = %d\n",ro*OROW_I+p, co*OCOL_I+i, (koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj, (int)out_value, (int)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj]);
+                      printf("output[%d][%d][%d] = %lld, ref = %lld\n",ro*OROW_I+p, co*OCOL_I+i, (koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj, (long long)out_value, (long long)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj]);
                     }
                   }  // for jj
                 }  // for j

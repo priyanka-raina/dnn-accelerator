@@ -24,26 +24,26 @@
 #include <boost/preprocessor/punctuation/comma.hpp>
 #include <boost/preprocessor/arithmetic/dec.hpp>
 
-#pragma hls_map_to_operator [CCORE]
-template<typename DTYPE, int KI>
-class pe_template{
-  private:
-    DTYPE x_reg;
-    NewPackedStencil<PRECISION, KI, 1, 1> y_reg;
-  public:
-    void exec(DTYPE &x_in, NewPackedStencil<PRECISION, KI, 1, 1> &y_in, NewPackedStencil<PRECISION, KI, 1, 1> &w, DTYPE &x_out, NewPackedStencil<PRECISION, KI, 1, 1> &y_out) {
-        // x_out = x_reg;
-        // y_out = y_reg;
-        x_reg = x_in;
-        y_reg = y_in; 
-        COMP: for (int i = 0; i < KI; i++) {
-            DTYPE tmp = x_reg * read<PRECISION, KI, 1, 1>(w, i, 0, 0) + read<PRECISION, KI, 1, 1>(y_reg, i, 0, 0);
-            write<PRECISION, KI, 1, 1>(y_reg, tmp, i, 0, 0, 0);
-        }
-        x_out = x_in;
-        y_out = y_reg;
-    }
-};
+// #pragma hls_map_to_operator [CCORE]
+// template<typename DTYPE, int KI>
+// class pe_template{
+//   private:
+//     DTYPE x_reg;
+//     NewPackedStencil<PRECISION, KI, 1, 1> y_reg;
+//   public:
+//     void exec(DTYPE &x_in, NewPackedStencil<PRECISION, KI, 1, 1> &y_in, NewPackedStencil<PRECISION, KI, 1, 1> &w, DTYPE &x_out, NewPackedStencil<PRECISION, KI, 1, 1> &y_out) {
+//         // x_out = x_reg;
+//         // y_out = y_reg;
+//         x_reg = x_in;
+//         y_reg = y_in; 
+//         COMP: for (int i = 0; i < KI; i++) {
+//             DTYPE tmp = x_reg * read<PRECISION, KI, 1, 1>(w, i, 0, 0) + read<PRECISION, KI, 1, 1>(y_reg, i, 0, 0);
+//             write<PRECISION, KI, 1, 1>(y_reg, tmp, i, 0, 0, 0);
+//         }
+//         x_out = x_in;
+//         y_out = y_reg;
+//     }
+// };
 
 /*
 The systolic array is 4 X 4. unrolling C_I (=4) channels amd K_I (=4) kernels.
@@ -62,7 +62,6 @@ void systolic_array(ac_channel<NewPackedStencil<PRECISION, C_I, 1, 1> > &input,
   const int XY_I = X_I * Y_I;
   int XY_O = params.X_O * params.Y_O;
 
-  // // C_I x K_I PE array
   static pe_template<DTYPE, K_II> pe[C_I+1][K_I+1];
 
   // local buffers to store partial output 
@@ -299,7 +298,6 @@ This design consists a input double buffer, a weight double buffer, and a systol
 Input and weight data are reused inside double buffers, and streamed to systolic array.
 Output data are accumulated inside systolic array, and streamed out.
 */
-
 #pragma hls_design top
 #pragma hls_pipeline_init_interval 1
 void conv(ac_channel<NewPackedStencil<PRECISION,CI_NUM> > &input0, 
