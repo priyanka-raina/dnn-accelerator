@@ -120,7 +120,7 @@ CCS_MAIN(int argc, char *argv[])
     conv_design.run(input_stream,weight_stream,output_stream, params_stream);
 
     // run reference model
-    conv_ref(input, weight, output_ref);          
+    conv_ref<IDTYPE,ODTYPE,OROW,OCOL,K_NUM,C_NUM,W_SIZE,STRIDE>(input, weight, output_ref);          
 
     printf("\nOutput\n\n"); 
     // compare the hardware results with the reference model
@@ -131,6 +131,7 @@ CCS_MAIN(int argc, char *argv[])
             for (int p = 0; p < OROW_I; p++ ){
               for (int i = 0; i < OCOL_I; i++ ){
                 PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> output_col = output_stream.read();
+                printf("read\n");
                 for (int j = 0; j < KI_NUM; j++) {
                   for (int jj = 0; jj < KII; jj++) {
                     ODTYPE out_value = output_col.read(jj, j);
