@@ -31,7 +31,9 @@ struct LoopParams{
     int wx_idx;
     int wy_idx;
     int koi_idx;
-    int step;
+    int X_I;
+    int Y_I;
+    // int step;
     // bool weight_read;
     // bool input_read;
     // bool clear_output_buffer;
@@ -55,13 +57,13 @@ public:
         ac_channel<PackedStencil<INPUT_PRECISION, C_I, 1, 1> > &input, 
         ac_channel<PackedStencil<INPUT_PRECISION, K_II, K_I, 1> > &weight, 
         ac_channel<PackedStencil<OUTPUT_PRECISION, K_II, K_I, 1> > &output,
-        ac_channel<LoopParams> &loopParams)
+        ac_channel<LoopParams> &paramsIn)
     {
         #ifndef __SYNTHESIS__
-        while(loopParams.available(1))
+        while(paramsIn.available(1))
         #endif
         {
-            params = loopParams.read();
+            params = paramsIn.read();
 
         //  // TODO: set these hls_unroll pragmas to the TCL script
         // #pragma hls_unroll no
@@ -76,14 +78,14 @@ public:
         //                 winy: for (int wy_idx = 0; wy_idx < params.WS; ++wy_idx) { // loop over filter window y
         //                     #pragma hls_unroll no
         //                     k_oi: for (int koi_idx = 0; koi_idx < params.K_OI; ++koi_idx) { // loop over kernel tiles
-        //                         #pragma hls_unroll no
-        //                         xy_i: for (int step = 0; step < K_I+C_I+(X_I*Y_I)-1; ++step) { // loop inside each image tile
+                                #pragma hls_unroll no
+                                xy_i: for (int step = 0; step < K_I+C_I+(params.X_I*params.Y_I)-1; ++step) { // loop inside each image tile
                                     
                                     // filling phase for systolic array, put data into local registers 
-                                    if (params_old.step < C_I) {      
+                                    if (step < C_I) {      
                                     // if(params_old.weight_read){      
                                         PackedStencil<INPUT_PRECISION,K_II, K_I> w_row = weight.read();
-                                        w_tile[params_old.step] = w_row;
+                                        w_tile[step] = w_row;
                                         /*#ifndef __SYNTHESIS__
                                         for (int col = 0; col<K_I; col++) {
                                             printf("weight=%d on row  %d, col %d\n", w_row(0,col,0,0), step, col);
@@ -94,7 +96,7 @@ public:
                                     /* read input from the output stream of the double buffer,
                                     push input to fifos, and read input from fifos into local registers*/
                                     PackedStencil<INPUT_PRECISION, C_I,1,1> in_col;
-                                    if (params_old.step < (X_I*Y_I)) {        
+                                    if (step < (params.X_I*params.Y_I)) {        
                                     // if (params_old.input_read) {        
                                     in_col = input.read();
                                     /*#ifndef __SYNTHESIS__
@@ -125,7 +127,7 @@ public:
                                     PackedStencil<OUTPUT_PRECISION, K_II, K_I,1> output_buf;
 
                                     // initial partial output of 0
-                                    if(params_old.c_idx == 0 && params_old.wx_idx == 0 && params_old.wy_idx == 0) {
+                                    if(params.c_idx == 0 && params.wx_idx == 0 && params.wy_idx == 0) {
                                     // if(params_old.clear_output_buffer) {
                                         output_buf.clear();
                                     }
@@ -133,7 +135,7 @@ public:
                                     
                                     #define TMP_ROW_OUT(z,i,unused) \
                                         PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(tmp_row_, i); \
-                                        BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[ MOD( (params_old.koi_idx*(X_I*Y_I) + params_old.step + K_I- i), 256) ]; \
+                                        BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256) ]; \
                                         output_buf.set_dim(BOOST_PP_CAT(tmp_row_, i), i, 0, 0);
                                     REPEAT(TMP_ROW_OUT)
                                     }
@@ -180,7 +182,7 @@ public:
                                         printf("ending step %d - output %d %d %d %d\n", step, output_fifo_0,output_fifo_1,output_fifo_2,output_fifo_3);
                                     #endif*/
                                 
-                                    if (params_old.c_idx==params_old.C_O-1 && params_old.wx_idx == params_old.WS-1 && params_old.wy_idx == params_old.WS-1) {
+                                    if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
                                     // if (params_old.add_to_output) {
                                         #define FIFO_WRITE_BODY_NEW(z,i,unused)\
                                             PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
@@ -190,17 +192,17 @@ public:
                                         // outputSkewer.run(output_row);    
                                     }
 
-                                    if(params_old.step >= K_I){
+                                    if(step >= K_I){
                                     // if(params_old.store_partial_sum){
                                         #define OUTPUT_ROW_BODY(z,i,unused)\
-                                            BOOST_PP_CAT(out_tile_,i)[ MOD( (params_old.koi_idx*(X_I*Y_I)+params_old.step-(K_I)+K_I-i), 256) ] = BOOST_PP_CAT(sys_array_out_,i);
+                                            BOOST_PP_CAT(out_tile_,i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256) ] = BOOST_PP_CAT(sys_array_out_,i);
                                         REPEAT(OUTPUT_ROW_BODY)
                                     }
 
                                     // output row if one has completed
-                                    if (params_old.step >= K_I+C_I-1) {
-                                    // if (params_old.completed_row) {
-                                        if (params_old.c_idx==params_old.C_O-1 && params_old.wx_idx == params_old.WS-1 && params_old.wy_idx == params_old.WS-1) {
+                                    if (step >= K_I+C_I-1) {
+                                    // if (completed_row) {
+                                        if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
                                         // if (params_old.add_to_output) {
                                         output.write(output_row);
                                         }
@@ -215,16 +217,16 @@ public:
                                         out_tmp[i+1][j+1] = out_tmp2[i+1][j+1];
                                         }
                                     }
-                                    params_old = params;
+                                    // params_old = params;
         }
-        //                         }
+                                // }
         //                     }
         //                 }
         //             }
         //         }
         //     }
         // }
-        // }
+        }
     }
 
 private:
@@ -259,6 +261,7 @@ private:
     PackedStencil<OUTPUT_PRECISION, K_II, 1, 1> out_tmp2[C_I+1][K_I+1];
 
     LoopParams params;
+    // Params params;
     LoopParams params_old;
 };
 
@@ -290,16 +293,18 @@ void run(
                             LABEL(winy) for (int wy_idx = 0; wy_idx < params.WS; ++wy_idx) { // loop over filter window y
                                 #pragma hls_unroll no
                                 LABEL(k_oi) for (int koi_idx = 0; koi_idx < params.K_OI; ++koi_idx) { // loop over kernel tiles
-                                    #pragma hls_unroll no
-                                    LABEL(xy_i) for (int step = 0; step < params.K_I+params.C_I+(params.X_I*params.Y_I)-1; ++step) { // loop inside each image tile
+                                    // #pragma hls_unroll no
+                                    // LABEL(xy_i) for (int step = 0; step < params.K_I+params.C_I+(params.X_I*params.Y_I)-1; ++step) { // loop inside each image tile
                                         LoopParams loopParams = {
                                             params.C_O,
                                             params.WS, 
                                             c_idx, 
                                             wx_idx, 
                                             wy_idx, 
-                                            koi_idx, 
-                                            step,
+                                            koi_idx,
+                                            params.X_I,
+                                            params.Y_I 
+                                            
                                             
                                             // step < C_I, // read new row of weights
                                             // step < (X_I*Y_I), // read new column of inputs
@@ -310,7 +315,7 @@ void run(
                                             
                                         };
                                         loopParamsChannel.write(loopParams);
-                                    }
+                                    // }
                                 }
                             }
                         }
@@ -338,6 +343,7 @@ public:
     {
         systolicArrayLooper.run(paramsIn, loopParamsChannel);
         systolicArrayCore.run(input, weight, output, loopParamsChannel);
+        // systolicArrayCore.run(input, weight,output,paramsIn);
     }
 private:
     SystolicArrayCore<IDTYPE, ODTYPE, K_II, K_I, C_I, X_I, Y_I, K> systolicArrayCore;

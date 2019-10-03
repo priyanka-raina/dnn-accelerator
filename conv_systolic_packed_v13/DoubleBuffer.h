@@ -31,7 +31,7 @@ public:
             Params params = paramsIn.read();
 
             int total_blocks = params.X_O*params.Y_O;
-            int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+            int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
 
              while(total_blocks > 0){
                 chanStruct<PackedStencil<INPUT_PRECISION,C_I>,size> tmp;
@@ -72,7 +72,7 @@ public:
         {
             Params params = paramsIn.read();
             int total_blocks = params.X_O*params.Y_O;
-            int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+            int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
             int total_block_size = (total_blocks)*(block_size);
 
             #pragma hls_pipeline_init_interval 1
@@ -112,7 +112,7 @@ public:
             Params params = paramsIn.read();
 
             int total_blocks = params.X_O*params.Y_O;
-            int block_size = params.C_O*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1);
+            int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
             int read_block_size = params.K_OO * params.C_O * params.WS * params.WS * params.K_OI * params.Y_I * params.X_I;
 
             while(total_blocks > 0){
@@ -139,10 +139,10 @@ public:
                             for (int x_idx=0; x_idx < params.Y_I; x_idx++) {
                             for (int y_idx=0; y_idx < params.X_I; y_idx++) {
                                 int address = (block_count*block_size) +
-                                            (co_idx*(params.X_I+params.WS-1)*(params.Y_I+params.WS-1)) +
+                                            (co_idx*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1)) +
                                             (
-                                                (x_idx+wx_idx)*(params.X_I+params.WS-1) +
-                                                y_idx +
+                                                (params.STRIDE*x_idx+wx_idx)*(params.STRIDE*params.X_I+params.WS-1) +
+                                                (params.STRIDE*y_idx) +
                                                 wy_idx
                                             );
                                 addresses.write(address);

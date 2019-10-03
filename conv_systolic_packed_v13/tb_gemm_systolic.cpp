@@ -30,7 +30,7 @@
 CCS_MAIN(int argc, char *argv[]) 
 {
   
-    IDTYPE input[(OROW+W_SIZE-1)][(OCOL+W_SIZE-1)][C_NUM]; 
+    IDTYPE input[(STRIDE_LEN*OROW+W_SIZE-1)][(STRIDE_LEN*OCOL+W_SIZE-1)][C_NUM]; 
     IDTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM]; 
     ODTYPE output_ref[OROW][OCOL][K_NUM];
   
@@ -55,11 +55,11 @@ CCS_MAIN(int argc, char *argv[])
     for (int ro = 0; ro < OROW_O; ro++) {
       for (int co = 0; co < OCOL_O; co++) {
         for (int c=0; c<CO_NUM; c++) {
-          for (int p = 0; p < OROW_I + W_SIZE - 1; p++ ){
-            for (int j = 0; j < OCOL_I + W_SIZE - 1; j++ ){
+          for (int p = 0; p < STRIDE_LEN*OROW_I + W_SIZE - 1; p++ ){
+            for (int j = 0; j < STRIDE_LEN*OCOL_I + W_SIZE - 1; j++ ){
               PackedStencil<INPUT_PRECISION, CI_NUM> input_col;
               for (int i = 0; i < CI_NUM; i++ ){
-                input_col.write(input[ro*OROW_I+p][co*OCOL_I+j][c*CI_NUM+i], i,0,0,0);
+                input_col.write(input[ro*STRIDE_LEN*OROW_I+p][co*STRIDE_LEN*OCOL_I+j][c*CI_NUM+i], i,0,0,0);
               }  // for i
               input_stream.write(input_col);
             }  // for j 
@@ -110,7 +110,7 @@ CCS_MAIN(int argc, char *argv[])
     printf("finished weights\n");
 
     ac_channel<Params> params_stream;
-    Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KOO_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE};
+    Params params = {OROW_O, OCOL_O, OROW_I, OCOL_I, KI_NUM, KOO_NUM, KO_NUM, CI_NUM, CO_NUM, W_SIZE, STRIDE_LEN};
     params_stream.write(params);
 
     // Main function call
@@ -120,7 +120,7 @@ CCS_MAIN(int argc, char *argv[])
     conv_design.run(input_stream,weight_stream,output_stream, params_stream);
 
     // run reference model
-    conv_ref<IDTYPE,ODTYPE,OROW,OCOL,K_NUM,C_NUM,W_SIZE,STRIDE>(input, weight, output_ref);          
+    conv_ref<IDTYPE,ODTYPE,OROW,OCOL,K_NUM,C_NUM,W_SIZE,STRIDE_LEN>(input, weight, output_ref);          
 
     printf("\nOutput\n\n"); 
     // compare the hardware results with the reference model
@@ -131,7 +131,6 @@ CCS_MAIN(int argc, char *argv[])
             for (int p = 0; p < OROW_I; p++ ){
               for (int i = 0; i < OCOL_I; i++ ){
                 PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> output_col = output_stream.read();
-                printf("read\n");
                 for (int j = 0; j < KI_NUM; j++) {
                   for (int jj = 0; jj < KII; jj++) {
                     ODTYPE out_value = output_col.read(jj, j);

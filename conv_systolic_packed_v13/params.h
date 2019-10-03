@@ -12,6 +12,7 @@ typedef struct {
    int C_I;
    int C_O;
    int WS;
+   int STRIDE;
  } Params;
 
 #endif

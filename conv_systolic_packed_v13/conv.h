@@ -40,7 +40,7 @@
 #define OROW_O      OROW / OROW_I  //the outer loop size of row dimension
 #define OCOL_O      OCOL / OCOL_I  //the outer loop size of col dimension
 
-#define STRIDE      1
+#define STRIDE_LEN      1
 
 #define INPUT_SIZE  128/2*1024/CI_NUM
 #define WEIGHT_SIZE 128/2*1024/CI_NUM
