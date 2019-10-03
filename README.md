@@ -13,10 +13,15 @@
 | 8/07 | :white_check_mark: Unify input and weight buffers (done, but still functions) |
 | 8/07 | :white_check_mark: Run 16x16 design through place and route flow (get Massimo to replicate the flow)|
 | 9/17 | :white_check_mark: Get unified input and weight buffer to work with hierarchical |
-| 9/30 | Fix setup, hold, DRC in post P&R design |
-| 9/30 | Fix ncsim makefile |
-| 9/30 | Resnet testbench (Massimo) |
-| 9/30 | LSTM testbench (Rohan) |
+| 9/30 | :white_check_mark: Stride works in HLS (1, 2, 3 tested) |
+| 9/30 | :white_check_mark: Resnet testbench all layers except first (Massimo) |
+| 9/30 | :white_check_mark: Can extract quantized weights from distiller (Rohan) |
+| 10/10 | Resnet testbench first layer (Massimo) |
+| 10/10 | LSTM testbench (matrix - vector works) (Rohan) |
+| 10/10 | Push resnet and LSTM through power estimation (Massimo) |
+| 10/10 | Fix setup, hold, DRC in post P&R design (have added resgiters to output) (Kartik) |
+| 10/10 | Fix ncsim makefile (Kartik) |
+| 10/10 | Test SRAM license (Massimo) |
 | 10/7 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
 | 10/7 | Energy comparision with Xuan's model and ENVISION |
 | 10/7 | Register file in PEs |
