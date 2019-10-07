@@ -28,17 +28,18 @@ public:
     OutputSkewer(){}
     
 #pragma hls_design interface ccore
-    void run(IT input[K_I], OT &output){
-        #define READ_REG(z,i,unused) \
-            IT BOOST_PP_CAT(sys_array_out_,i) = input[i+1];
-        REPEAT(READ_REG)
-        
+    void run(OT &input, OT &output){
+        OT tmp_output;
         #define OUTPUT_FIFO_WRITE(z,i,unused) \
             IT BOOST_PP_CAT(output_fifo_output_, i); \
-            BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(sys_array_out_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
-            output.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
+            IT BOOST_PP_CAT(output_fifo_input_, i); \
+            BOOST_PP_CAT(output_fifo_input_, i).value = input.read(0,i,0,0); \
+            BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(output_fifo_input_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
+            tmp_output.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
             
         REPEAT(OUTPUT_FIFO_WRITE)
+
+        output = tmp_output;
     }
 
 private:

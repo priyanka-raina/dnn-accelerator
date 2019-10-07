@@ -185,6 +185,8 @@ public:
                                     //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
                                     // REPEAT(FIFO_WRITE_BODY)
 
+                                    
+
 
                                     /*#ifndef __SYNTHESIS__
                                         printf("ending step %d - output %d %d %d %d\n", step, output_fifo_0,output_fifo_1,output_fifo_2,output_fifo_3);
@@ -198,7 +200,14 @@ public:
                                         //     output_row.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
                                         // REPEAT(FIFO_WRITE_BODY_NEW)
 
-                                        outputSkewer.run(out_tmp[C_I], output_row);
+                                        PackedStencil<OUTPUT_PRECISION, K_II, K_I> unskewed_output;
+
+                                        #pragma hls_unroll yes
+                                        for(int i = 0; i < C_I; i++){
+                                            unskewed_output.write(out_tmp[C_I][i+1], 0, i, 0, 0);
+                                        }
+
+                                        outputSkewer.run(unskewed_output, output_row);
 
                                         if(step >= K_I+C_I-1){
                                             output.write(output_row);
