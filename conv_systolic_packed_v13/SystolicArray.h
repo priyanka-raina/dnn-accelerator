@@ -6,7 +6,8 @@
 #include "array_dimensions.h"
 #include "fifo.h"
 #include "Stencil_catapult.h"
-// #include "InputSkewer.h"
+#include "InputSkewer.h"
+#include "OutputSkewer.h"
 
 #include <boost/preprocessor/repetition/repeat.hpp>
 #include <boost/preprocessor/punctuation/comma_if.hpp>
@@ -21,7 +22,7 @@
 #include <boost/preprocessor/arithmetic/dec.hpp>
 
 // Include mc_scverify.h for CCS_* macros
-// #include <mc_scverify.h>
+#include <mc_scverify.h>
 // #define CCS_BLOCK(x) x
 
 struct LoopParams{
@@ -111,13 +112,13 @@ public:
 
                                     /* A trianglar shape of FIFOs, used for skewing the array front,
                                     such that the right input data comes to the right PE at the right timing.*/
-                                    #define INPUT_FIFO_BODY(z,i,unused) \
-                                    IDTYPE BOOST_PP_CAT(input_fifo_output_, i); \
-                                    IDTYPE BOOST_PP_CAT(input_fifo_input_, i) = in_col.read(i ,0,0); \
-                                    BOOST_PP_CAT(input_fifo_, i).run( BOOST_PP_CAT(input_fifo_input_, i) , BOOST_PP_CAT(input_fifo_output_, i) ); \
-                                    input_buf.write(BOOST_PP_CAT(input_fifo_output_, i), i ,0,0,0);
-                                    REPEAT(INPUT_FIFO_BODY)
-                                    // inputSkewer.run(in_col, input_buf);
+                                    // #define INPUT_FIFO_BODY(z,i,unused) \
+                                    // IDTYPE BOOST_PP_CAT(input_fifo_output_, i); \
+                                    // IDTYPE BOOST_PP_CAT(input_fifo_input_, i) = in_col.read(i ,0,0); \
+                                    // BOOST_PP_CAT(input_fifo_, i).run( BOOST_PP_CAT(input_fifo_input_, i) , BOOST_PP_CAT(input_fifo_output_, i) ); \
+                                    // input_buf.write(BOOST_PP_CAT(input_fifo_output_, i), i ,0,0,0);
+                                    // REPEAT(INPUT_FIFO_BODY)
+                                    inputSkewer.run(in_col, input_buf);
                             
                                     /*#ifndef __SYNTHESIS__
                                     printf("starting step %d - input %d %d %d %d\n", step, input_fifo_0,input_fifo_1,input_fifo_2,input_fifo_3);
@@ -131,13 +132,20 @@ public:
                                     // if(params_old.clear_output_buffer) {
                                         output_buf.clear();
                                     }
-                                    else{
+                                    else{ // read partial output from accumulation buffer
+                                        #pragma hls_unroll yes
+                                        for(int i = 0; i < C_I; ++i){
+                                            PackedStencil<OUTPUT_PRECISION, K_II> tmp_row;
+                                            int address = MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256);
+                                            tmp_row.value = out_tile[address][i];
+                                            output_buf.set_dim(tmp_row, i, 0, 0);
+                                        }
                                     
-                                    #define TMP_ROW_OUT(z,i,unused) \
-                                        PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(tmp_row_, i); \
-                                        BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256) ]; \
-                                        output_buf.set_dim(BOOST_PP_CAT(tmp_row_, i), i, 0, 0);
-                                    REPEAT(TMP_ROW_OUT)
+                                    // #define TMP_ROW_OUT(z,i,unused) \
+                                    //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(tmp_row_, i); \
+                                    //     BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256) ]; \
+                                    //     output_buf.set_dim(BOOST_PP_CAT(tmp_row_, i), i, 0, 0);
+                                    // REPEAT(TMP_ROW_OUT)
                                     }
 
                                     /*#ifndef __SYNTHESIS__
@@ -173,9 +181,9 @@ public:
                                     such that the right output data are collected at the right timing*/ 
                                     PackedStencil<OUTPUT_PRECISION, K_II, K_I> output_row;
                                 
-                                    #define FIFO_WRITE_BODY(z,i,unused)\
-                                        PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
-                                    REPEAT(FIFO_WRITE_BODY)
+                                    // #define FIFO_WRITE_BODY(z,i,unused)\
+                                    //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
+                                    // REPEAT(FIFO_WRITE_BODY)
 
 
                                     /*#ifndef __SYNTHESIS__
@@ -184,29 +192,44 @@ public:
                                 
                                     if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
                                     // if (params_old.add_to_output) {
-                                        #define FIFO_WRITE_BODY_NEW(z,i,unused)\
-                                            PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
-                                            BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(sys_array_out_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
-                                            output_row.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
-                                        REPEAT(FIFO_WRITE_BODY_NEW)
+                                        // #define FIFO_WRITE_BODY_NEW(z,i,unused)\
+                                        //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
+                                        //     BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(sys_array_out_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
+                                        //     output_row.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
+                                        // REPEAT(FIFO_WRITE_BODY_NEW)
+
+                                        outputSkewer.run(out_tmp[C_I], output_row);
+
+                                        if(step >= K_I+C_I-1){
+                                            output.write(output_row);
+                                        }
                                         // outputSkewer.run(output_row);    
                                     }
+                                    else{
 
-                                    if(step >= K_I){
-                                    // if(params_old.store_partial_sum){
-                                        #define OUTPUT_ROW_BODY(z,i,unused)\
-                                            BOOST_PP_CAT(out_tile_,i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256) ] = BOOST_PP_CAT(sys_array_out_,i);
-                                        REPEAT(OUTPUT_ROW_BODY)
-                                    }
+                                        if(step >= K_I){
+                                        // if(params_old.store_partial_sum){
+                                            // #define OUTPUT_ROW_BODY(z,i,unused)\
+                                            //     BOOST_PP_CAT(out_tile_,i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256) ] = BOOST_PP_CAT(sys_array_out_,i);
+                                            // REPEAT(OUTPUT_ROW_BODY)
 
-                                    // output row if one has completed
-                                    if (step >= K_I+C_I-1) {
-                                    // if (completed_row) {
-                                        if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
-                                        // if (params_old.add_to_output) {
-                                        output.write(output_row);
+                                            #pragma hls_unroll yes
+                                            for(int i = 0; i < C_I; i++){
+                                                int address = MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256);
+                                                out_tile[address][i] = out_tmp[C_I][i+1];
+                                            }
                                         }
                                     }
+
+
+                                    // // output row if one has completed
+                                    // if (step >= K_I+C_I-1) {
+                                    // // if (completed_row) {
+                                    //     if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
+                                    //     // if (params_old.add_to_output) {
+                                    //     output.write(output_row);
+                                    //     }
+                                    // }
 
                                     
                                     #pragma hls_unroll yes
@@ -234,19 +257,20 @@ private:
     ProcessingElement<IDTYPE, ODTYPE, K_II> pe[C_I][K_I];
 
 // local buffers to store partial output
-#define OUT_TILE_INIT(z, i, unused) \
-    ac_int<OUTPUT_PRECISION * K_II, false> BOOST_PP_CAT(out_tile_, i)[256];
-    REPEAT(OUT_TILE_INIT)
+// #define OUT_TILE_INIT(z, i, unused) \
+//     ac_int<OUTPUT_PRECISION * K_II, false> BOOST_PP_CAT(out_tile_, i)[256];
+//     REPEAT(OUT_TILE_INIT)
+    ac_int<OUTPUT_PRECISION * K_II, false> out_tile[256][C_I];
 
-#define INPUT_FIFOS_INIT(z, i, unused) \
-    Fifo<IDTYPE, i + 1> BOOST_PP_CAT(input_fifo_, i);
-    REPEAT(INPUT_FIFOS_INIT)
-    // InputSkewer<PackedStencil<PRECISION, C_I> > inputSkewer;
+// #define INPUT_FIFOS_INIT(z, i, unused) \
+//     Fifo<IDTYPE, i + 1> BOOST_PP_CAT(input_fifo_, i);
+//     REPEAT(INPUT_FIFOS_INIT)
+    InputSkewer<PackedStencil<INPUT_PRECISION, C_I> > inputSkewer;
 
-#define OUTPUT_FIFOS_INIT(z, i, unused) \
-    Fifo<PackedStencil<OUTPUT_PRECISION, K_II>, K_I - i> BOOST_PP_CAT(output_fifo_, i);
-    REPEAT(OUTPUT_FIFOS_INIT)
-    // OutputSkewer<PackedStencil<PRECISION, K_II, K_I> > outputSkewer;
+// #define OUTPUT_FIFOS_INIT(z, i, unused) \
+//     Fifo<PackedStencil<OUTPUT_PRECISION, K_II>, K_I - i> BOOST_PP_CAT(output_fifo_, i);
+//     REPEAT(OUTPUT_FIFOS_INIT)
+    OutputSkewer<PackedStencil<OUTPUT_PRECISION, K_II>, PackedStencil<OUTPUT_PRECISION, K_II, K_I>, K_I > outputSkewer;
 
     PackedStencil<INPUT_PRECISION,K_II, K_I> w_tile[C_I];
 
