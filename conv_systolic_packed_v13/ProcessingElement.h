@@ -2,7 +2,7 @@
 #define PROCESSING_ELEMENT_H
 
 // Include mc_scverify.h for CCS_* macros
-// #include <mc_scverify.h>
+#include <mc_scverify.h>
 
 // #define CCS_BLOCK(x) x
 
@@ -12,7 +12,7 @@ public:
     ProcessingElement(){}
 
 #pragma hls_design interface ccore
-    void run(
+    void CCS_BLOCK(run)(
         IDTYPE &input_in,
         PackedStencil<OUTPUT_PRECISION, KI, 1, 1> &psum_in,
         PackedStencil<INPUT_PRECISION, KI, 1, 1> &weight,

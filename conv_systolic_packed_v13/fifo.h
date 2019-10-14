@@ -4,6 +4,8 @@
 // Include mc_scverify.h for CCS_* macros
 #include <mc_scverify.h>
 
+// #define CCS_BLOCK(x) x
+
 template<typename T, int NUM_REGS>
 class Fifo{
 public:
@@ -19,7 +21,7 @@ public:
 #pragma hls_design interface ccore
     void CCS_BLOCK(run)(T &input, T &output)
     {
-    SHIFT:
+    LABEL(SHIFT)
         for (int i = NUM_REGS - 1; i >= 0; i--)
         {
             if (i == 0)

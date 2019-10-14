@@ -8,8 +8,8 @@
 // 
 
 // #include "conv_ref.h"
-template<typename IN_TYPE, typename OUT_TYPE, int OUTPUT_ROW, int OUTPUT_COL, int KERNEL_NUMBER, int CHANNEL_NUMBER, int WS, int STRIDE_LEN>
-void conv_ref( IN_TYPE input[(OUTPUT_ROW*STRIDE_LEN+WS-1)][(OUTPUT_COL*STRIDE_LEN+WS-1)][CHANNEL_NUMBER], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
+template<typename IN_TYPE, typename OUT_TYPE, int OUTPUT_ROW, int OUTPUT_COL, int KERNEL_NUMBER, int CHANNEL_NUMBER, int WS, int STRIDE>
+void conv_ref( IN_TYPE input[(OUTPUT_ROW*STRIDE+WS-1)][(OUTPUT_COL*STRIDE+WS-1)][CHANNEL_NUMBER], // R_TILE=CI_NUM, Y_TILE=BLOCKSIZE
                IN_TYPE weight[WS][WS][CHANNEL_NUMBER][KERNEL_NUMBER], // R_TILE=CI_NUM, X_TILE=KI_NUM
                OUT_TYPE output[OUTPUT_ROW][OUTPUT_COL][KERNEL_NUMBER]){
 
@@ -21,7 +21,7 @@ void conv_ref( IN_TYPE input[(OUTPUT_ROW*STRIDE_LEN+WS-1)][(OUTPUT_COL*STRIDE_LE
         ACC:for (int c=0; c < CHANNEL_NUMBER; ++c) { 
           WR: for (int fx=0; fx < WS; fx++) {
             WC: for (int fy=0; fy < WS; fy++) {
-              tmp += (OUT_TYPE) input[STRIDE_LEN*i+fx][STRIDE_LEN*j+fy][c] * (OUT_TYPE) weight[fx][fy][c][k];
+              tmp += (OUT_TYPE) input[STRIDE*i+fx][STRIDE*j+fy][c] * (OUT_TYPE) weight[fx][fy][c][k];
             }
           }
         }

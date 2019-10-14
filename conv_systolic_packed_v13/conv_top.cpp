@@ -9,9 +9,9 @@
 #endif
 
 
-#ifndef CCS_BLOCK
-#define CCS_BLOCK(x) x
-#endif
+// #ifndef CCS_BLOCK
+// #define CCS_BLOCK(x) x
+// #endif
 
 #include "Stencil_catapult.h"
 #include "conv.h"

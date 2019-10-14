@@ -6,7 +6,7 @@
 // #include "conv.h"
 
 // Include mc_scverify.h for CCS_* macros
-// #include <mc_scverify.h>
+#include <mc_scverify.h>
 
 // #define CCS_BLOCK(x) x
 
@@ -21,7 +21,7 @@ public:
     InputBankWriter(){}
 
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<PackedStencil<INPUT_PRECISION,C_I> > &din,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION,C_I>,size> > &dout){
         #ifndef __SYNTHESIS__
@@ -61,7 +61,7 @@ public:
     InputBankReader(){}
 
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, C_I>,size> > &din, 
                         ac_channel<int> &addresses, ac_channel<int> &address_sizes,
                         ac_channel<PackedStencil<INPUT_PRECISION, C_I,1,1> > &dout)
@@ -101,7 +101,7 @@ public:
     InputBankAddressGenerator(){}
     
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<int> &addresses, 
                         ac_channel<int> &address_sizes)
                               {
@@ -170,7 +170,7 @@ public:
 
   #pragma hls_design interface
   #pragma hls_pipeline_init_interval 1
-  void run(ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_in, 
+  void CCS_BLOCK(run)(ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_in, 
                       ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_out,
                       ac_channel<Params> &paramsIn){
     #ifndef __SYNTHESIS__
@@ -210,7 +210,7 @@ public:
     WeightBankWriter(){}
 
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &din,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>, size> > &dout){
         #ifndef __SYNTHESIS__
@@ -251,7 +251,7 @@ public:
     WeightBankReader(){}
 
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>,size> > &din, 
                         ac_channel<int> &addresses, ac_channel<int> &address_sizes,
                         ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &dout)
@@ -292,7 +292,7 @@ public:
     WeightBankAddressGenerator(){}
     
     #pragma hls_design interface
-    void run(ac_channel<Params> &paramsIn,
+    void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<int> &addresses, 
                         ac_channel<int> &address_sizes)
                               {
@@ -356,7 +356,7 @@ public:
 
   #pragma hls_design interface
   #pragma hls_pipeline_init_interval 1
-  void run(ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_in, 
+  void CCS_BLOCK(run)(ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_in, 
                       ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_out,
                       ac_channel<Params> &paramsIn){
     #ifndef __SYNTHESIS__
@@ -396,7 +396,7 @@ public:
     DoubleBuffer(){}
 
 #pragma hls_design interface
-    void run(ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_in, 
+    void CCS_BLOCK(run)(ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_in, 
                       ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_out,
                       ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_in,
                       ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_out,
