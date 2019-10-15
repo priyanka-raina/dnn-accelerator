@@ -1,6 +1,8 @@
 #ifndef PROCESSING_ELEMENT_H
 #define PROCESSING_ELEMENT_H
 
+#include "common.h"
+
 // Include mc_scverify.h for CCS_* macros
 #include <mc_scverify.h>
 

@@ -1,6 +1,8 @@
 #ifndef FIFO_H
 #define FIFO_H
 
+#include "common.h"
+
 // Include mc_scverify.h for CCS_* macros
 #include <mc_scverify.h>
 

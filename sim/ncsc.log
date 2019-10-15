@@ -1,0 +1,79 @@
+ncsc(64): 15.20-s022: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
+ncsc: /cad/cadence/INCISIVE15.20.022/tools/cdsgcc/gcc/install/bin/g++ -DNCSC -DCADENCE  -DLNX86 -I/cad/cadence/INCISIVE15.20.022/tools/systemc/include_pch/64bit  -fPIC -o scverify/concat_sim_rtl_v_ncsim/scverify_top.cpp.cxxts.o -I../conv_systolic_packed_v13/build/conv.v1/scverify -I./scverify -I. -I../.. -I../conv_systolic_packed_v13/include -I../conv_systolic_packed_v13 -I/home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13 -I./scverify -I. -I../.. -I/home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13 -I../../include -I/cad/cadence/INCISIVE15.20.022/tools/tbsc/include -I/cad/cadence/INCISIVE15.20.022/tools/vic/include -I/cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home/pkgs/hls_pkgs/src -I/cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home/pkgs/siflibs -I/cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home/pkgs/hls_pkgs/mgc_comps_src -DNCSC -c -x c++ -Wall -Wno-unknown-pragmas -Wno-deprecated -DCCS_SCVERIFY_USE_CCS_BLOCK -DCCS_DUT_RTL -DCCS_DUT_VERILOG -DCCS_SCVERIFY -DSC_INCLUDE_DYNAMIC_PROCESSES -DSC_USE_STD_STRING -DTOP_HDL_ENTITY=conv_rtl -DCCS_DESIGN_FUNC_conv_run -DCCS_DESIGN_TOP_conv_rtl -DCCS_MISMATCHED_OUTPUTS_ONLY  -DDEADLOCK_DETECTION  -DNCSC -DCADENCE  -DLNX86 -I/cad/cadence/INCISIVE15.20.022/tools/systemc/include_pch/64bit  -I/cad/cadence/INCISIVE15.20.022/tools/systemc/include/tlm2 -I/cad/cadence/INCISIVE15.20.022/tools/systemc/include/cci -I/cad/cadence/INCISIVE15.20.022/tools/tbsc/include -I/cad/cadence/INCISIVE15.20.022/tools/vic/include -c -Wall  scverify/scverify_top.cpp
+../conv_systolic_packed_v13/SystolicArrayCore.h:93:37: warning: multi-line comment [-Wcomment]
+../conv_systolic_packed_v13/SystolicArrayCore.h:122:37: warning: multi-line comment [-Wcomment]
+../conv_systolic_packed_v13/SystolicArrayCore.h:162:37: warning: multi-line comment [-Wcomment]
+../conv_systolic_packed_v13/SystolicArrayCore.h:175:41: warning: multi-line comment [-Wcomment]
+../conv_systolic_packed_v13/SystolicArrayCore.h:199:45: warning: multi-line comment [-Wcomment]
+../conv_systolic_packed_v13/SystolicArrayCore.h:247:1: warning: multi-line comment [-Wcomment]
+ncsc: Running scFrontEnd on scverify/scverify_top.cpp using library WORK...
+"../conv_systolic_packed_v13/include/ac_float.h", line 1009: error: too many
+          arguments in function call
+      FL_OPS_WITH_CTYPE(float)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1010: error: too many
+          arguments in function call
+      FL_OPS_WITH_CTYPE(double)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1011: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(bool)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1012: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(char)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1013: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(signed char)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1014: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(unsigned char)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1015: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(short)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1016: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(unsigned short)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1017: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(int)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1018: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(unsigned int)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1019: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(long)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1020: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(unsigned long)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1021: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(Slong)
+      ^
+
+"../conv_systolic_packed_v13/include/ac_float.h", line 1022: error: too many
+          arguments in function call
+      FL_OPS_WITH_INT_CTYPE(Ulong)
+      ^
+

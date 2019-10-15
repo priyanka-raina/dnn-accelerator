@@ -1,6 +1,8 @@
 #ifndef SYSTOLIC_ARRAY_CORE_H
 #define SYSTOLIC_ARRAY_CORE_H
 
+#include "common.h"
+
 struct LoopParams{
     int C_O;
     int WS;
