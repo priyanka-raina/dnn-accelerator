@@ -28,8 +28,8 @@ MGC_HOME          = /cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home
 export MGC_HOME
 
 WORK_DIR  = $(CURDIR)
-WORK2PROJ = ../conv_systolic_packed_v13
-WORK2SOLN = ../conv_systolic_packed_v13/build/conv.v1
+WORK2PROJ = ../hls
+WORK2SOLN = ../hls/build/conv.v1
 PROJ2WORK = ../sim/
 PROJ2SOLN = ./build/conv.v1
 WORK2SOLN = $(WORK2PROJ)/$(PROJ2SOLN)
@@ -62,7 +62,7 @@ NETLIST                     = v
 endif
 export NETLIST
 ifeq "$(RTL_NETLIST_FNAME)" ""
-RTL_NETLIST_FNAME           = /sim/kprabhu7/dnn-accelerator/conv_systolic_packed_v13/Catapult_98/conv.v1/concat_sim_rtl.v
+RTL_NETLIST_FNAME           = /sim/kprabhu7/dnn-accelerator/hls/build/conv.v1/concat_sim_rtl.v
 endif
 export RTL_NETLIST_FNAME
 ifeq "$(GATE_FNAME_BASE)" ""
@@ -143,7 +143,7 @@ CXXFLAGS += -DMC_DEFAULT_TRANSACTOR_LOG=$(MC_DEFAULT_TRANSACTOR_LOG)
 endif
 # 
 # CXX_INCLUDES - include file search paths
-CXX_INCLUDES = ../conv_systolic_packed_v13/build/conv.v1/scverify ./scverify . ../.. ../conv_systolic_packed_v13/include ../conv_systolic_packed_v13 /home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13
+CXX_INCLUDES = ../hls/build/conv.v1/scverify ./scverify . ../.. ../hls/include ../hls /home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13
 # 
 # TCL shell
 TCLSH_CMD = /cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home/bin/tclsh8.5
