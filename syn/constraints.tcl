@@ -19,5 +19,5 @@ set_max_transition 2 [all_outputs]
 set_output_delay 0 -clock clk [all_outputs]
 set_input_delay 0 -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
 
-# Place & Route: 20 pF
-set_load 20 [all_outputs]
+# capacitance of I/O pad
+set_load 1 [all_outputs]

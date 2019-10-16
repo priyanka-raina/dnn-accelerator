@@ -1,4 +1,4 @@
-set design_name conv
+set design_name conv_rtl
 
 set report_dir ./reports
 sh mkdir -p $report_dir
