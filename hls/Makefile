@@ -2,6 +2,7 @@ CATAPULT = /cad/mentor/2019.5/Catapult_Synthesis_10.3d-815731/Mgc_home/bin/catap
 
 build/conv.v1/rtl.v: build/SystolicArrayCore*.v1/rtl.v build/DoubleBuffer*.v1/rtl.v SystolicArray.h
 	$(CATAPULT) -shell -file scripts/conv.tcl
+	cp build/conv.v1/concat_rtl.v ../rtl/concat_rtl.v
 
 build/SystolicArrayCore*.v1/rtl.v: build/ProcessingElement*.v1/rtl.v build/OutputSkewer*.v1/rtl.v build/InputSkewer*.v1/rtl.v SystolicArrayCore.h
 	$(CATAPULT) -shell -file scripts/SystolicArrayCore.tcl
