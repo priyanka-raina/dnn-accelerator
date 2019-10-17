@@ -21,7 +21,7 @@ source ../constraints.tcl
 ### END DESIGN CONSTRAINTS
 check_design > $report_dir/$design_name.chk1
 
-read_saif -auto_map_names -instance "scverify_top/rtl" -input "/sim/kprabhu7/dnn-accelerator/conv_systolic_packed_v13/ncsim_backward.saif" -verbose
+read_saif -auto_map_names -instance "scverify_top/rtl" -input "/sim/kprabhu7/dnn-accelerator/hls/ncsim_backward.saif" -verbose
 
 report_compile_options
 
@@ -36,7 +36,7 @@ report_timing -in -net -transition_time  -capacitance  -significant_digits  4 -a
 
 report_saif -hier > conv.mapped.saif.rpt
 
-saif_map -create_map -input "/sim/kprabhu7/dnn-accelerator/conv_systolic_packed_v13/ncsim_backward.saif" -source_instance "scverify_top/rtl" -verbose
+saif_map -create_map -input "/sim/kprabhu7/dnn-accelerator/hls/ncsim_backward.saif" -source_instance "scverify_top/rtl" -verbose
 
 saif_map -type ptpx -write_map "post-synth.namemap"
 
