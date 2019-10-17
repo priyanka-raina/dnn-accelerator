@@ -4,6 +4,7 @@ set search_path "$search_path   /tsmc28/libs/2016.10.07/tcbn28hplbwphvt_120b_nld
 				/tsmc28/libs/2016.10.07/tcbn28hplbwplvt_120b_ccs/TSMCHOME/digital/Front_End/timing_power_noise/CCS/tcbn28hplbwplvt_120b \
                                 /tsmc28/libs/2016.10.07/tphn28hplgv18_130a_nldm/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tphn28hplgv18_130a \
                                 /home/kprabhu7/mc2/MC2_2012.02.00.c/ts6n28hpla256x16m4swbs_120b/NLDM \
+                                /home/kprabhu7/mc2/MC2_2012.02.00.c/ts6n28hpla256x32m4swbs_120b/NLDM \
                                 /home/kprabhu7/mc2/MC2_2012.02.00.c/ts1n28hplb4096x112m4s_130a/NLDM \
 				/home/kprabhu7/mc2/MC2_2012.02.00.c/ts1n28hplb4096x144m4s_130a/NLDM"
 
@@ -31,7 +32,16 @@ ts6n28hpla256x16m4swbs_120b_ss0p9v0c.db \
 ts6n28hpla256x16m4swbs_120b_ss0p9v125c.db \
 ts6n28hpla256x16m4swbs_120b_ss0p9vm40c.db \
 ts6n28hpla256x16m4swbs_120b_tt1v25c.db \
-ts6n28hpla256x16m4swbs_120b_tt1v85c.db"
+ts6n28hpla256x16m4swbs_120b_tt1v85c.db \
+ts6n28hpla256x32m4swbs_120b_ff1p1v0c.db \
+ts6n28hpla256x32m4swbs_120b_ff1p1v125c.db \
+ts6n28hpla256x32m4swbs_120b_ff1p1vm40c.db \
+ts6n28hpla256x32m4swbs_120b_ff1p1v125c.db \
+ts6n28hpla256x32m4swbs_120b_ss0p9v0c.db \
+ts6n28hpla256x32m4swbs_120b_ss0p9v125c.db \
+ts6n28hpla256x32m4swbs_120b_ss0p9vm40c.db \
+ts6n28hpla256x32m4swbs_120b_tt1v25c.db \
+ts6n28hpla256x32m4swbs_120b_tt1v85c.db"
 
 
 set target_library "tcbn28hplbwphvttt1v25c.db $srams"
