@@ -2,6 +2,10 @@
 #define SYSTOLIC_ARRAY_CORE_H
 
 #include "common.h"
+#include "ProcessingElement.h"
+#include "InputSkewer.h"
+#include "OutputSkewer.h"
+// #include "PEArray.h"
 
 struct LoopParams{
     int C_O;
@@ -58,13 +62,17 @@ public:
         //                     #pragma hls_unroll no
         //                     k_oi: for (int koi_idx = 0; koi_idx < params.K_OI; ++koi_idx) { // loop over kernel tiles
                                 #pragma hls_unroll no
+                                #pragma hls_pipeline_init_interval 1
                                 xy_i: for (int step = 0; step < K_I+C_I+(params.X_I*params.Y_I)-1; ++step) { // loop inside each image tile
                                     
                                     // filling phase for systolic array, put data into local registers 
                                     if (step < C_I) {      
                                     // if(params_old.weight_read){      
                                         PackedStencil<INPUT_PRECISION,K_II, K_I> w_row = weight.read();
-                                        w_tile[step] = w_row;
+                                        for(int j = 0; j < K_I; j++){
+                                            w_tile[step][j] = w_row.get_dim(j,0,0);
+                                        }
+                                        // w_tile[step] = w_row;
                                         /*#ifndef __SYNTHESIS__
                                         for (int col = 0; col<K_I; col++) {
                                             printf("weight=%d on row  %d, col %d\n", w_row(0,col,0,0), step, col);
@@ -148,16 +156,24 @@ public:
                                     LABEL(COL) for (int j=0; j < K_I; ++j) {
                                         #pragma hls_unroll yes
                                         LABEL(ROW) for (int i=0; i < C_I; ++i) {
-                                        PackedStencil<INPUT_PRECISION, K_II> weight_value = w_tile[i].get_dim(j,0,0);
-                                        pe[i][j].run(in_tmp[i+1][j], out_tmp[i][j+1], weight_value, in_tmp2[i+1][j+1], out_tmp2[i+1][j+1]);
+                                        // PackedStencil<INPUT_PRECISION, K_II> weight_value = w_tile[i].get_dim(j,0,0);
+                                        pe[i][j].run(in_tmp[i+1][j], out_tmp[i][j+1], w_tile[i][j], in_tmp2[i+1][j+1], out_tmp2[i+1][j+1]);
                                         } //ROW
                                     } //COL
-
+                                    
+                                    // PackedStencil<OUTPUT_PRECISION, K_II, K_I> unskewed_output;
+                                    // peArray.run(
+                                    //     input_buf,
+                                    //     output_buf,
+                                    //     unskewed_output,
+                                    //     w_row,
+                                    //     step
+                                    // );
                                 
                             
                                     /* A trianglar shape of FIFOs, used for skewing as well, 
                                     such that the right output data are collected at the right timing*/ 
-                                    PackedStencil<OUTPUT_PRECISION, K_II, K_I> output_row;
+                                    
                                 
                                     // #define FIFO_WRITE_BODY(z,i,unused)\
                                     //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
@@ -179,7 +195,7 @@ public:
                                         // REPEAT(FIFO_WRITE_BODY_NEW)
 
                                         PackedStencil<OUTPUT_PRECISION, K_II, K_I> unskewed_output;
-
+                                        PackedStencil<OUTPUT_PRECISION, K_II, K_I> output_row;
                                         #pragma hls_unroll yes
                                         for(int i = 0; i < C_I; i++){
                                             unskewed_output.write(out_tmp[C_I][i+1], 0, i, 0, 0);
@@ -204,6 +220,7 @@ public:
                                             for(int i = 0; i < C_I; i++){
                                                 int address = MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256);
                                                 out_tile[address][i] = out_tmp[C_I][i+1];
+                                                // out_tile[address][i] = unskewed_output.read(0, i, 0, 0);
                                             }
                                         }
                                     }
@@ -228,18 +245,20 @@ public:
                                         }
                                     }
                                     // params_old = params;
-        }
-                                // }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        }
+                                }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+    }
     }
 
 private:
+    // PEArray<IDTYPE, ODTYPE, K_II, K_I, C_I, X_I, Y_I, K> peArray;
     // C_I x K_I PE array
     ProcessingElement<IDTYPE, ODTYPE, K_II> pe[C_I][K_I];
 
@@ -259,7 +278,7 @@ private:
 //     REPEAT(OUTPUT_FIFOS_INIT)
     OutputSkewer<PackedStencil<OUTPUT_PRECISION, K_II>, PackedStencil<OUTPUT_PRECISION, K_II, K_I>, K_I > outputSkewer;
 
-    PackedStencil<INPUT_PRECISION,K_II, K_I> w_tile[C_I];
+    PackedStencil<INPUT_PRECISION,K_II> w_tile[C_I][K_I];
 
     /*
   the registers that used for relaying input and output in horizonal and vertical directions respectively.

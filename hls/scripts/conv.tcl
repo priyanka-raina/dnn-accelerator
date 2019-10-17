@@ -68,29 +68,16 @@ go libraries
 directive set -CLOCKS {clk {-CLOCK_PERIOD 5 -CLOCK_EDGE rising -CLOCK_HIGH_TIME 2.5 -CLOCK_OFFSET 0.000000 -CLOCK_UNCERTAINTY 0.0 -RESET_KIND sync -RESET_SYNC_NAME rst -RESET_SYNC_ACTIVE high -RESET_ASYNC_NAME arst_n -RESET_ASYNC_ACTIVE low -ENABLE_NAME {} -ENABLE_ACTIVE high}}
 directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64> -MAP_TO_MODULE {[Block] SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>.v1}
 directive set /conv/DoubleBuffer<4096,4096,16,1,16> -MAP_TO_MODULE {[Block] DoubleBuffer<4096,4096,16,1,16>.v1}
-# directive set /conv/output:rsc/OUTPUT_DELAY 4.95
 
 directive set /conv -FIFO_DEPTH 3
 directive set /conv/systolicArray -FIFO_DEPTH 3
-# directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64> -FIFO_DEPTH 3
 
 go assembly
 
-
-# # Accumulation buffer
-# for {set i 0}  {$i < 16} {incr i} {
-#     directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/out_tile_$i:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
-# }
-
-# set registers for arrays
 directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64> -FIFO_DEPTH 3
 
 go architect
 
-# directive set /conv/SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/loopParamsChannel -FIFO_DEPTH 3
-
 go allocate
 
 go extract
-
-file copy -force [solution get /SOLUTION_DIR]/concat_rtl.v ../../rtl/concat_rtl.v

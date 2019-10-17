@@ -6,8 +6,7 @@ directive set -DESIGN_HIERARCHY {
     {ProcessingElement<IDTYPE, ODTYPE, 1>} 
     {conv}
     {InputSkewer<PackedStencil<16UL, 16UL, 1UL, 1UL, 1UL>>}
-    {OutputSkewer<PackedStencil<32UL, 1UL, 1UL, 1UL, 1UL>, PackedStencil<32UL, 1UL, 16UL, 1UL, 1UL>, 16>}
-    {SystolicArrayWrapper<IDTYPE, ODTYPE, 1, 16, 16, 7, 7, 64>} 
+    {OutputSkewer<PackedStencil<32UL, 1UL, 1UL, 1UL, 1UL>, PackedStencil<32UL, 1UL, 16UL, 1UL, 1UL>, 16>} 
     {SystolicArrayCore<IDTYPE, ODTYPE, 1, 16, 16, 7, 7, 64>}  
     {SystolicArrayLooper} 
     {Fifo<PackedStencil<32UL, 1UL, 1UL, 1UL, 1UL>, 1>} 
