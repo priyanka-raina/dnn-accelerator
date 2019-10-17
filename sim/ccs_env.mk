@@ -167,11 +167,11 @@ NCSim_NCSC_CXX_OPTS                                   := -x c++ -Wall -Wno-unkno
 export NCSim_NCSC_CXX_OPTS
 endif
 ifeq "$(NCSim_NCELAB_OPTS)" ""
-NCSim_NCELAB_OPTS                                     := 
+NCSim_NCELAB_OPTS                                     := -notimingchecks 
 export NCSim_NCELAB_OPTS
 endif
 ifeq "$(NCSim_NCSIM_OPTS)" ""
-NCSim_NCSIM_OPTS                                      := 
+NCSim_NCSIM_OPTS                                      := +notimingcheck 
 export NCSim_NCSIM_OPTS
 endif
 ifeq "$(NCSim_NCSIM_TIMESCALE)" ""

@@ -1,9 +1,0 @@
-ncvlog(64): 15.20-s022: (c) Copyright 1995-2017 Cadence Design Systems, Inc.
-module CGHpart (
-             |
-ncvlog: *W,RECOMP (../conv_systolic_packed_v13//./build/conv.v1/concat_sim_rtl.v,4756|13): recompiling design unit work.CGHpart.
-	First compiled from line 2218 of ../conv_systolic_packed_v13//./build/conv.v1/concat_sim_rtl.v.
-module CGHpart (
-             |
-ncvlog: *W,RECOMP (../conv_systolic_packed_v13//./build/conv.v1/concat_sim_rtl.v,32834|13): recompiling design unit work.CGHpart.
-	First compiled from line 2218 of ../conv_systolic_packed_v13//./build/conv.v1/concat_sim_rtl.v.
