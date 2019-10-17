@@ -19,13 +19,18 @@
 | 10/10 | :white_check_mark: Test SRAM license (Massimo) |
 | 10/10 | :white_check_mark: Fix ncsim makefile (Kartik) |
 | 10/10 | :white_check_mark: History fsm and RRAM memory ctrl synthesis with 40R works |
-| 10/17 | Working on history fsm P&R right now (Massimo) |
+| 10/17 | :white_check_mark: Working on history fsm P&R right now (Massimo) |
+| 10/17 | :white_check_mark: Figure out the high level spec of the system (Massimo) |
+| 10/17 | :white_check_mark: Generating some power numbers (Rohan) |
+| 10/17 | :white_check_mark: Example RISC-V SOC through verilog, software (Kalhan) |
+| 10/17 | :white_check_mark: Fix setup, hold -- no violations after syn (Kartik) |
+| 10/17 | What applications we want to show, memory (SRAM, RRAM) banking and addressing (Massimo, Rohan) |
+| 10/17 | Working on history fsm DRC, LVS (Massimo) |
 | 10/17 | Resnet testbench first layer (Massimo) |
-| 10/17 | Figure out the spec of the system -- what applications we want to show (Massimo) |
-| 10/17 | LSTM testbench (matrix - vector works) (Rohan) |
+| 10/17 | LSTM testbench (matrix - vector works) some bound on error (Rohan) |
 | 10/17 | Push resnet and LSTM through power estimation (Rohan) |
-| 10/17 | Example RISC-V SOC through verilog, software (Kalhan) |
-| 10/17 | Fix setup, hold, DRC in post P&R design (have added resgiters to output) (Kartik) |
+| 10/17 | Hooking up rocket core to systolic array (send receive something) (Kalhan) |
+| 10/17 | Run P&R make sure no setup, hold, DRC, LVS (Kartik) |
 | 10/17 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
 | 10/17 | Energy comparision with Xuan's model and ENVISION |
 |       | Register file in PEs |
