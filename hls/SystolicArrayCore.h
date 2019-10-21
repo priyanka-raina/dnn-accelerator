@@ -28,7 +28,7 @@ struct LoopParams{
 #define MOD(x,y)\
     ( ( (x) % (y) + y ) % y )
 
-template <typename IDTYPE, typename ODTYPE, int K_II, int K_I, int C_I, int X_I, int Y_I, int K>
+template <typename IDTYPE, typename ODTYPE, int K_II, int K_I, int C_I>
 class SystolicArrayCore
 {
 public:

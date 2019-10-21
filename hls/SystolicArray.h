@@ -90,7 +90,7 @@ void run(
 
 };
 
-template <typename IDTYPE, typename ODTYPE, int K_II, int K_I, int C_I, int X_I, int Y_I, int K>
+template <typename IDTYPE, typename ODTYPE, int K_II, int K_I, int C_I>
 class SystolicArrayWrapper
 {
 public:
@@ -109,7 +109,7 @@ public:
         // systolicArrayCore.run(input, weight,output,paramsIn);
     }
 private:
-    SystolicArrayCore<IDTYPE, ODTYPE, K_II, K_I, C_I, X_I, Y_I, K> systolicArrayCore;
+    SystolicArrayCore<IDTYPE, ODTYPE, K_II, K_I, C_I> systolicArrayCore;
     SystolicArrayLooper systolicArrayLooper;
     ac_channel<LoopParams> loopParamsChannel;
 };

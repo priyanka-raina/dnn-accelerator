@@ -62,7 +62,7 @@ private:
     ac_channel<PackedStencil<INPUT_PRECISION,CI_NUM> > input_out;
     ac_channel<PackedStencil<INPUT_PRECISION,KII, KI_NUM> > weight_out;
 
-    SystolicArrayWrapper<IDTYPE, ODTYPE, KII, KI_NUM, CI_NUM, OROW_I, OCOL_I, K_NUM> systolicArray;
+    SystolicArrayWrapper<IDTYPE, ODTYPE, KII, KI_NUM, CI_NUM> systolicArray;
     ac_channel<Params> systolicArrayParams;
 };
 
