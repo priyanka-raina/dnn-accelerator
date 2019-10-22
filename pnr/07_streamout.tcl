@@ -24,7 +24,7 @@ set_write_stream_options \
     -child_depth 99 \
         -output_pin {geometry} \
         -keep_data_type \
-        -map_layer /tsmc28/pdk/2016.09.28/TN28CLPR002S1_1_5A/N28_PRTF_Syn_v1d5a/N28_PRTF_Syn_v1d5a/PR_tech/Synopsys/GdsOutMap/gdsout_4X2Y1Z.map
+        -map_layer $gds_map_layer
 
 write_stream -cells ${design_name} -format gds ./${design_name}.gds
 

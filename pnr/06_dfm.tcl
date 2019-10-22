@@ -4,7 +4,7 @@ insert_stdcell_filler -no_1x -cell_without_metal "FILL64BWPHVT FILL32BWPHVT FILL
 route_opt -incremental -size_only
 
 ##### postroute redundant via insertion #####
-source /tsmc28/pdk/2016.09.28/TN28CLPR002S1_1_5A/N28_PRTF_Syn_v1d5a/N28_PRTF_Syn_v1d5a/PR_tech/Synopsys/DFMViaSwapTcl/n28_ICC_DFMSWAP_4X2Y1Z_HVH.tcl
+source $via_insertion_script
 
 ##### add std cell filler #####
 insert_stdcell_filler -no_1x -cell_without_metal "FILL64BWPHVT FILL32BWPHVT FILL16BWPHVT FILL8BWPHVT FILL4BWPHVT FILL3BWPHVT FILL2BWPHVT" -connect_to_power {VDD} -connect_to_ground {VSS} -respect_keepout -respect_overlap

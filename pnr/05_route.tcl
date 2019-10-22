@@ -1,5 +1,5 @@
 ##### set up routing #####
-source /tsmc28/libs/2016.10.07/tcbn28hplbwphvt_120b_apf/TSMCHOME/digital/Back_End/milkyway/tcbn28hplbwphvt_120b/clf/antennaRule_n28_8lm.tcl
+source $antenna_ratio_script
 
 set_route_options -same_net_notch check_and_fix
 
@@ -35,7 +35,7 @@ route_opt -initial_route_only
 route_opt -skip_initial_route -effort high
 
 ##### perform postroute redundant via insertion #####
-source /tsmc28/pdk/2016.09.28/TN28CLPR002S1_1_5A/N28_PRTF_Syn_v1d5a/N28_PRTF_Syn_v1d5a/PR_tech/Synopsys/DFMViaSwapTcl/n28_ICC_DFMSWAP_4X2Y1Z_HVH.tcl
+source $via_insertion_script
 
 ##### signal route verification #####
 verify_zrt_route
@@ -52,7 +52,7 @@ set_app_var routeopt_drc_over_timing true
 route_opt -incremental -only_design_rule
 
 ##### perform postroute redundant via insertion #####
-source /tsmc28/pdk/2016.09.28/TN28CLPR002S1_1_5A/N28_PRTF_Syn_v1d5a/N28_PRTF_Syn_v1d5a/PR_tech/Synopsys/DFMViaSwapTcl/n28_ICC_DFMSWAP_4X2Y1Z_HVH.tcl
+source $via_insertion_script
 
 ##### signal route verification #####
 verify_zrt_route

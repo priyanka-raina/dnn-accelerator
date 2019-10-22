@@ -1,14 +1,18 @@
+set_host_options -max_cores 12
+
 set design_name conv
 set report_dir ./reports
 sh mkdir -p $report_dir
 
-source ./pt_setup.tcl
+# source ./pt_setup.tcl
+source ../common/setup.tcl
 
 read_verilog "../syn/conv/conv_rtl.sv"
 current_design conv_rtl
 link_design
 
-create_clock clk -name clock -period 5
+# create_clock clk -name clock -period 5
+source ../common/constraints.tcl
 
 complete_net_parasitics -complete_with wlm
 set_propagated_clock [get_ports clk]

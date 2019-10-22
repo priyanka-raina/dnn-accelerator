@@ -7,4 +7,4 @@ endif
 mkdir conv
 cd conv
 
-dc_shell -o conv_syn.log -f ../run.tcl
+dc_shell -topographical -o conv_syn.log -f ../run.tcl
