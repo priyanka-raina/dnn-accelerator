@@ -24,13 +24,14 @@
 | 10/17 | :white_check_mark: Generating some power numbers (Rohan) |
 | 10/17 | :white_check_mark: Example RISC-V SOC through verilog, software (Kalhan) |
 | 10/17 | :white_check_mark: Fix setup, hold -- no violations after syn (Kartik) |
+| 10/24 | :white_check_mark: Run P&R make sure no setup, hold (Kartik) |
 | 10/24 | What applications we want to show, memory (SRAM, RRAM) banking and addressing (Massimo, Rohan) |
 | 10/24 | Working on history fsm DRC, LVS (Massimo) |
 | 10/24 | Resnet testbench first layer (Massimo) |
 | 10/24 | LSTM testbench (matrix - vector works) some bound on error (Rohan) |
 | 10/24 | Push resnet and LSTM through power estimation (Rohan) |
 | 10/24 | Hook up rocket core to systolic array (send receive something) (Kalhan) |
-| 10/24 | Run P&R make sure no setup, hold, DRC, LVS (Kartik) |
+| 10/24 | Run P&R make sure no DRC, LVS (Kartik) |
 | 10/24 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
 | 10/24 | Energy comparision with Xuan's model and ENVISION |
 |       | Register file in PEs |
