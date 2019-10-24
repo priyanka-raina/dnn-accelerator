@@ -51,12 +51,7 @@ directive set -DESIGN_HIERARCHY {
 }
 
 go compile
-solution library add tcbn28hplbwphvttt1v25c_dc -- -rtlsyntool DesignCompiler -vendor TSMC -technology 28nm
-solution library add ts6n28hpla2048x32m8swbs_tt1v25c
-solution library add ts6n28hpla256x32m4swbs_tt1v25c
-solution library add ts6n28hpla4096x16m16swbs_tt1v25c
-solution library add custom4096X256
-solution library add ts6n28hpla256x16m4swbs_tt1v25c
+source scripts/set_libraries.tcl
 go libraries
 directive set -CLOCKS {clk {-CLOCK_PERIOD 5 -CLOCK_EDGE rising -CLOCK_HIGH_TIME 2.5 -CLOCK_OFFSET 0.000000 -CLOCK_UNCERTAINTY 0.0 -RESET_KIND sync -RESET_SYNC_NAME rst -RESET_SYNC_ACTIVE high -RESET_ASYNC_NAME arst_n -RESET_ASYNC_ACTIVE low -ENABLE_NAME {} -ENABLE_ACTIVE high}}
 go assembly
