@@ -54,12 +54,7 @@ directive set -DESIGN_HIERARCHY {
 
 go compile
 
-solution library add tcbn28hplbwphvttt1v25c_dc -- -rtlsyntool DesignCompiler -vendor TSMC -technology 28nm
-solution library add ts6n28hpla2048x32m8swbs_tt1v25c
-solution library add ts6n28hpla256x32m4swbs_tt1v25c
-solution library add ts6n28hpla4096x16m16swbs_tt1v25c
-solution library add custom4096X256
-solution library add ts6n28hpla256x16m4swbs_tt1v25c
+source scripts/set_libraries.tcl
 
 solution library add {[CCORE] InputSkewer<PackedStencil<16UL,16UL,1UL,1UL,1UL>>.v1}
 solution library add {[CCORE] ProcessingElement<IDTYPE,ODTYPE,1>.v1}
@@ -79,7 +74,7 @@ directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run -CLOCK_OVERHEAD 0.00
 
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -INTERLEAVE 16
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -BLOCK_SIZE 256
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -MAP_TO_MODULE ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -MAP_TO_MODULE $accum_buffer_module
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -REGISTER_OUTPUT true
 
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/output:rsc -OUTPUT_DELAY 4.950000

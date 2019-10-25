@@ -54,12 +54,7 @@ directive set -DESIGN_HIERARCHY {
 
 go compile
 
-solution library add tcbn28hplbwphvttt1v25c_dc -- -rtlsyntool DesignCompiler -vendor TSMC -technology 28nm
-solution library add ts6n28hpla2048x32m8swbs_tt1v25c
-solution library add ts6n28hpla256x32m4swbs_tt1v25c
-solution library add ts6n28hpla4096x16m16swbs_tt1v25c
-solution library add custom4096X256
-solution library add ts6n28hpla256x16m4swbs_tt1v25c
+source scripts/set_libraries.tcl
 
 solution library add {[Block] DoubleBuffer<4096,4096,16,1,16>.v1}
 solution library add {[Block] SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>.v1}
