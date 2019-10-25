@@ -16,6 +16,8 @@ struct LoopParams{
     int koi_idx;
     int X_I;
     int Y_I;
+    int K_OO;
+    int K_OI;
     // int step;
     // bool weight_read;
     // bool input_read;
@@ -47,6 +49,10 @@ public:
         #endif
         {
             params = paramsIn.read();
+
+            #ifndef __SYNTHESIS__
+            assert(params.X_I * params.Y_I * params.K_OO*params.K_OI < 256);
+            #endif
 
         //  // TODO: set these hls_unroll pragmas to the TCL script
         // #pragma hls_unroll no

@@ -169,7 +169,6 @@ public:
   InputBank(){}
 
   #pragma hls_design interface
-  #pragma hls_pipeline_init_interval 1
   void CCS_BLOCK(run)(ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_in, 
                       ac_channel<PackedStencil<INPUT_PRECISION, C_I> > &inputs_out,
                       ac_channel<Params> &paramsIn){
@@ -178,6 +177,11 @@ public:
     #endif
     {
         Params params = paramsIn.read();
+
+        #ifndef __SYNTHESIS__
+        int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
+        assert(block_size < size);
+        #endif
 
         inputBankReaderParams.write(params);
         inputBankWriterParams.write(params);
@@ -355,7 +359,6 @@ public:
   WeightBank(){}
 
   #pragma hls_design interface
-  #pragma hls_pipeline_init_interval 1
   void CCS_BLOCK(run)(ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_in, 
                       ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &weights_out,
                       ac_channel<Params> &paramsIn){
@@ -364,6 +367,11 @@ public:
     #endif
     {
         Params params = paramsIn.read();
+
+        #ifndef __SYNTHESIS__
+        int block_size = params.C_I*params.K_OI*params.WS*params.WS;
+        assert(block_size <= size);
+        #endif
 
         weightBankReaderParams.write(params);
         weightBankWriterParams.write(params);

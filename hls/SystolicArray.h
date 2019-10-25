@@ -66,7 +66,9 @@ void run(
                                             wy_idx, 
                                             koi_idx,
                                             params.X_I,
-                                            params.Y_I 
+                                            params.Y_I,
+                                            params.K_OO,
+                                            params.K_OI 
                                             
                                             
                                             // step < C_I, // read new row of weights
