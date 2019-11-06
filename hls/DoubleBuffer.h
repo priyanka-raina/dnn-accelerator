@@ -21,6 +21,7 @@ public:
     InputBankWriter(){}
 
     #pragma hls_design interface
+    // #pragma hls_pipeline_init_interval 1
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<PackedStencil<INPUT_PRECISION,C_I> > &din,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION,C_I>,size> > &dout){
@@ -39,6 +40,7 @@ public:
                 int current_buffer_size = 0;
                 int block_in_buffer = 0;
                 while(total_blocks > 0 &&  (current_buffer_size+block_size <= size ) ){
+                #pragma hls_pipeline_init_interval 1
                 for(int idx = 0; idx < block_size; idx++){
                     PackedStencil<INPUT_PRECISION,C_I,1,1> column;
                     column = din.read();
@@ -61,9 +63,10 @@ public:
     InputBankReader(){}
 
     #pragma hls_design interface
+    // #pragma hls_pipeline_init_interval 1
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, C_I>,size> > &din, 
-                        ac_channel<int> &addresses, ac_channel<int> &address_sizes,
+                        // ac_channel<int> &addresses, ac_channel<int> &address_sizes,
                         ac_channel<PackedStencil<INPUT_PRECISION, C_I,1,1> > &dout)
     {
         #ifndef __SYNTHESIS__
@@ -74,23 +77,63 @@ public:
             int total_blocks = params.X_O*params.Y_O;
             int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
             int total_block_size = (total_blocks)*(block_size);
+            int read_block_size = params.K_OO * params.C_O * params.WS * params.WS * params.K_OI * params.Y_I * params.X_I;
 
-            #pragma hls_pipeline_init_interval 1
-            while(total_block_size > 0){
+            while(total_blocks > 0){
                 chanStruct<PackedStencil<INPUT_PRECISION, C_I,1,1>, size> tmp = din.read();
+                int current_buffer_size = 0;
+                int block_in_buffer = 0;
+                int block_count = 0;
 
-                int address_size = address_sizes.read();
-                for(int idx = 0; idx < address_size; idx++){
-                    PackedStencil<INPUT_PRECISION, C_I,1,1> dout_struct;
-
-                    int address = addresses.read();
-
-                    dout_struct = tmp.data[address];
-
-                    dout.write(dout_struct);
+                while(total_blocks > 0 && (current_buffer_size + block_size) <= size){
+                    #pragma hls_pipeline_init_interval 1
+                    for(int koo_idx = 0; koo_idx < params.K_OO; koo_idx++){
+                    for(int co_idx = 0; co_idx < params.C_O; co_idx++){
+                    for (int wx_idx = 0; wx_idx < params.WS; wx_idx++) {
+                        for (int wy_idx = 0; wy_idx < params.WS; wy_idx++) {
+                        for (int koi_idx = 0; koi_idx < params.K_OI; koi_idx++) {
+                            for (int x_idx=0; x_idx < params.Y_I; x_idx++) {
+                            for (int y_idx=0; y_idx < params.X_I; y_idx++) {
+                                int address = (block_count*block_size) +
+                                            (co_idx*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1)) +
+                                            (
+                                                (params.STRIDE*x_idx+wx_idx)*(params.STRIDE*params.X_I+params.WS-1) +
+                                                (params.STRIDE*y_idx) +
+                                                wy_idx
+                                            );
+                                
+                                PackedStencil<INPUT_PRECISION, C_I,1,1> dout_struct = tmp.data[address];
+                                dout.write(dout_struct);
+                            }
+                            }
+                        }
+                        }
+                    }
+                    }
                 }
-                total_block_size -= address_size;
+                block_count++;
+                total_blocks--;
+                current_buffer_size += block_size;
+                }
             }
+
+            // #pragma hls_pipeline_init_interval 1
+            // while(total_block_size > 0){
+            //     chanStruct<PackedStencil<INPUT_PRECISION, C_I,1,1>, size> tmp = din.read();
+
+            //     int address_size = address_sizes.read();
+            //     #pragma hls_pipeline_init_interval 1
+            //     for(int idx = 0; idx < address_size; idx++){
+            //         PackedStencil<INPUT_PRECISION, C_I,1,1> dout_struct;
+
+            //         int address = addresses.read();
+
+            //         dout_struct = tmp.data[address];
+
+            //         dout.write(dout_struct);
+            //     }
+            //     total_block_size -= address_size;
+            // }
         }
     }
 };
@@ -178,18 +221,21 @@ public:
     {
         Params params = paramsIn.read();
 
+        
         #ifndef __SYNTHESIS__
         int block_size = params.C_O*(params.STRIDE*params.X_I+params.WS-1)*(params.STRIDE*params.Y_I+params.WS-1);
-        assert(block_size < size);
+        // The memory size must be big enough for 1 block to fit
+        assert(block_size <= size);
         #endif
 
         inputBankReaderParams.write(params);
         inputBankWriterParams.write(params);
-        inputBankAddressGeneratorParams.write(params);
+        // inputBankAddressGeneratorParams.write(params);
 
-        inputBankAddressGenerator.run(inputBankAddressGeneratorParams, addresses, address_sizes);
+        // inputBankAddressGenerator.run(inputBankAddressGeneratorParams, addresses, address_sizes);
         inputBankWriter.run(inputBankWriterParams, inputs_in, mem);
-        inputBankReader.run(inputBankReaderParams, mem, addresses, address_sizes, inputs_out);
+        // inputBankReader.run(inputBankReaderParams, mem, addresses, address_sizes, inputs_out);
+        inputBankReader.run(inputBankReaderParams, mem, inputs_out);
     }
   }
 
@@ -214,6 +260,7 @@ public:
     WeightBankWriter(){}
 
     #pragma hls_design interface
+    // #pragma hls_pipeline_init_interval 1
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &din,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>, size> > &dout){
@@ -232,7 +279,7 @@ public:
                 int current_buffer_size = 0;
                 int block_in_buffer = 0;
                 while(total_blocks > 0 &&  (current_buffer_size+block_size <= size ) ){
-
+                    #pragma hls_pipeline_init_interval 1
                     for(int idx = 0; idx < block_size; idx++){
                         PackedStencil<INPUT_PRECISION, KI, K_I> row;
                         row = din.read();
@@ -257,7 +304,7 @@ public:
     #pragma hls_design interface
     void CCS_BLOCK(run)(ac_channel<Params> &paramsIn,
                         ac_channel<chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>,size> > &din, 
-                        ac_channel<int> &addresses, ac_channel<int> &address_sizes,
+                        // ac_channel<int> &addresses, ac_channel<int> &address_sizes,
                         ac_channel<PackedStencil<INPUT_PRECISION, KI, K_I> > &dout)
     {
         #ifndef __SYNTHESIS__
@@ -269,23 +316,52 @@ public:
             int block_size = params.C_I*params.K_OI*params.WS*params.WS;
             int total_block_size = (total_blocks)*(block_size);
 
-            #pragma hls_pipeline_init_interval 1
-            while(total_block_size > 0){
+            while(total_blocks > 0){
                 chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>,size> tmp = din.read();
-
-                int address_size = address_sizes.read();
-                
-                for(int idx = 0; idx < address_size; idx++){
-                    PackedStencil<INPUT_PRECISION, KI, K_I> dout_struct;
-
-                    int address = addresses.read();
-
-                    dout_struct = tmp.data[address];
-
-                    dout.write(dout_struct);
+                int current_buffer_size = 0;
+                int block_in_buffer = 0;
+                int block_count = 0;
+                while(total_blocks > 0 && (current_buffer_size+block_size <= size)){
+                #pragma hls_pipeline_init_interval 1
+                for (int wx_idx = 0; wx_idx < params.WS*params.WS; wx_idx++){
+                for (int koi_idx = 0; koi_idx < params.K_OI; koi_idx++) {
+                    for (int r_idx = 0; r_idx < params.C_I; r_idx++){
+                        int address = block_count*block_size
+                                        + 
+                                        (
+                                            (koi_idx*params.C_I*params.WS*params.WS) +
+                                            (wx_idx*params.C_I) + 
+                                            (r_idx) 
+                                        );
+                        PackedStencil<INPUT_PRECISION, KI, K_I> dout_struct = tmp.data[address];
+                        dout.write(dout_struct);
+                        }
+                    }
+                    }
+                block_count++;
+                total_blocks--;
+                current_buffer_size += block_size;
                 }
-                total_block_size -= address_size;
+
             }
+
+            // #pragma hls_pipeline_init_interval 1
+            // while(total_block_size > 0){
+            //     chanStruct<PackedStencil<INPUT_PRECISION, KI, K_I>,size> tmp = din.read();
+
+            //     int address_size = address_sizes.read();
+                
+            //     for(int idx = 0; idx < address_size; idx++){
+            //         PackedStencil<INPUT_PRECISION, KI, K_I> dout_struct;
+
+            //         int address = addresses.read();
+
+            //         dout_struct = tmp.data[address];
+
+            //         dout.write(dout_struct);
+            //     }
+            //     total_block_size -= address_size;
+            // }
         }
     }
 };
@@ -375,11 +451,12 @@ public:
 
         weightBankReaderParams.write(params);
         weightBankWriterParams.write(params);
-        weightBankAddressGeneratorParams.write(params);
+        // weightBankAddressGeneratorParams.write(params);
 
-        weightBankAddressGenerator.run(weightBankAddressGeneratorParams, addresses, address_sizes);
+        // weightBankAddressGenerator.run(weightBankAddressGeneratorParams, addresses, address_sizes);
         weightBankWriter.run(weightBankWriterParams, weights_in, mem);
-        weightBankReader.run(weightBankReaderParams, mem, addresses, address_sizes, weights_out);
+        // weightBankReader.run(weightBankReaderParams, mem, addresses, address_sizes, weights_out);
+        weightBankReader.run(weightBankReaderParams, mem, weights_out);
     }
   }
 

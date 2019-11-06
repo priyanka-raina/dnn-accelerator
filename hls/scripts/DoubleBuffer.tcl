@@ -4,6 +4,8 @@ source scripts/common.tcl
 
 directive set -DESIGN_HIERARCHY { 
     {DoubleBuffer<4096, 4096, 16, 1, 16>} 
+}
+if { 0 } {
     {conv}
     {SystolicArrayCore<IDTYPE, ODTYPE, 1, 16, 16>}  
     {InputSkewer<PackedStencil<16UL, 16UL, 1UL, 1UL, 1UL>>}

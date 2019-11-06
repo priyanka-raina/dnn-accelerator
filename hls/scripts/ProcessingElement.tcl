@@ -4,6 +4,8 @@ source scripts/common.tcl
 
 directive set -DESIGN_HIERARCHY { 
     {ProcessingElement<IDTYPE, ODTYPE, 1>} 
+}
+if { 0 } {
     {conv}
     {InputSkewer<PackedStencil<16UL, 16UL, 1UL, 1UL, 1UL>>}
     {OutputSkewer<PackedStencil<32UL, 1UL, 1UL, 1UL, 1UL>, PackedStencil<32UL, 1UL, 16UL, 1UL, 1UL>, 16>} 
