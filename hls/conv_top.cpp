@@ -33,11 +33,11 @@ public:
     conv(){}
 
 #pragma hls_design interface
-#pragma hls_pipeline_init_interval 1
+// #pragma hls_pipeline_init_interval 1
     void CCS_BLOCK(run)(
-        ac_channel<PackedStencil<INPUT_PRECISION,CI_NUM> > &input, 
-        ac_channel<PackedStencil<INPUT_PRECISION, KII, KI_NUM> > &weight, 
-        ac_channel<PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> > &output,
+        ac_channel<InputPack<INPUT_PRECISION,CI_NUM> > &input, 
+        ac_channel<WeightPack<INPUT_PRECISION, KI_NUM, KII> > &weight, 
+        ac_channel<WeightPack<OUTPUT_PRECISION, KI_NUM, KII> > &output,
         ac_channel<Params> &paramsIn
     )
     {
@@ -56,13 +56,13 @@ public:
     }
 
 private:
-    DoubleBuffer<INPUT_SIZE, WEIGHT_SIZE, CI_NUM, KII, KI_NUM> doubleBuffer;
+    DoubleBuffer<INPUT_SIZE, WEIGHT_SIZE, CI_NUM, KI_NUM, KII> doubleBuffer;
     ac_channel<Params> doubleBufferParams;
 
-    ac_channel<PackedStencil<INPUT_PRECISION,CI_NUM> > input_out;
-    ac_channel<PackedStencil<INPUT_PRECISION,KII, KI_NUM> > weight_out;
+    ac_channel<InputPack<INPUT_PRECISION,CI_NUM> > input_out;
+    ac_channel<WeightPack<INPUT_PRECISION,KI_NUM,KII> > weight_out;
 
-    SystolicArrayWrapper<IDTYPE, ODTYPE, KII, KI_NUM, CI_NUM> systolicArray;
+    SystolicArrayWrapper<IDTYPE, ODTYPE, KI_NUM,KII, CI_NUM> systolicArray;
     ac_channel<Params> systolicArrayParams;
 };
 

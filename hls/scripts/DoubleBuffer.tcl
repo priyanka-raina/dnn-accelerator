@@ -3,7 +3,7 @@ set blockname [file rootname [file tail [info script] ]]
 source scripts/common.tcl
 
 directive set -DESIGN_HIERARCHY { 
-    {DoubleBuffer<4096, 4096, 16, 1, 16>} 
+    {DoubleBuffer<4096, 4096, 16, 16, 1>} 
 }
 if { 0 } {
     {conv}
@@ -64,6 +64,53 @@ directive set -CLOCKS {clk {-CLOCK_PERIOD 5 -CLOCK_EDGE rising -CLOCK_HIGH_TIME 
 # directive set /DoubleBuffer -OUTPUT_DELAY 4.95
 
 go assembly
+
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/din -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/din/WORD_WIDTH 256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/dout:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/dout:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/dout -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/dout/WORD_WIDTH 256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem:cns -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem:cns/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem:cns -STAGE_REPLICATION 2
+# /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem:cns/STAGE_REPLICATION 2
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBank<4096,16>/mem/WORD_WIDTH 256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/din:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/din:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/din -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/din/WORD_WIDTH 256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/dout:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/dout:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/dout -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/dout/WORD_WIDTH 256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem:cns -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem:cns/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem:cns -STAGE_REPLICATION 2
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem:cns/STAGE_REPLICATION 2
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBank<4096,16,1>/mem/WORD_WIDTH 256
+
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/run/while:tmp.data.value:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/run/while:tmp.data.value:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/run/while:tmp.data.value -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/InputBankReader<4096,16>/run/while:tmp.data.value/WORD_WIDTH 256
+# directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value:rsc -GEN_EXTERNAL_ENABLE true
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value:rsc/GEN_EXTERNAL_ENABLE true
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankWriter<4096,16,1>/run/while:tmp.data.value/WORD_WIDTH 256
+# directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value:rsc -GEN_EXTERNAL_ENABLE true
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value:rsc/GEN_EXTERNAL_ENABLE true
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value:rsc/MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value -WORD_WIDTH 256
+# /DoubleBuffer<4096,4096,16,16,1>/WeightBankReader<4096,16,1>/run/while:tmp.data.value/WORD_WIDTH 256
+#directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/run/while:tmp.data.value:rsc -GEN_EXTERNAL_ENABLE true
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/run/while:tmp.data.value:rsc -MAP_TO_MODULE custom4096X256.custom4096X256
+directive set /DoubleBuffer<4096,4096,16,16,1>/InputBankWriter<4096,16>/run/while:tmp.data.value -WORD_WIDTH 256
 
 # # Accumulation buffer
 # for {set i 0}  {$i < 16} {incr i} {

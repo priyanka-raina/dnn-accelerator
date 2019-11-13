@@ -186,6 +186,16 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t 
 //       return res; 
 //    }  
 
+template <size_t width, size_t EXTENT_0, size_t EXTENT_1>
+struct WeightPack {
+  ac_int<width> value[EXTENT_0][EXTENT_1];
+};
+
+template <size_t width, size_t EXTENT_0>
+struct InputPack {
+  ac_int<width> value[EXTENT_0];
+};
+
 template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 1, size_t EXTENT_3 = 1>
   struct PackedStencil {
     ac_int<width*EXTENT_3*EXTENT_2*EXTENT_1*EXTENT_0, false> value;
@@ -285,7 +295,13 @@ template <size_t width, size_t EXTENT_0, size_t EXTENT_1 = 1, size_t EXTENT_2 = 
       }
    } 
 
- 
+  void unpack(PackedStencil<width, EXTENT_0> array[EXTENT_1]){
+    #pragma hls_unroll yes
+    for(size_t idx = 0; idx < EXTENT_1; idx++){
+      size_t index = idx*width*EXTENT_0;
+      array[idx].value.set_slc( 0, value.template slc<width*EXTENT_0>( ((unsigned int)index) ) );
+    }
+  }
 
    // get 1st dim
    PackedStencil<width, EXTENT_0> get_dim(size_t index_1, size_t index_2, size_t index_3) {

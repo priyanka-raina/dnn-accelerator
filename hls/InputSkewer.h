@@ -27,7 +27,8 @@ class InputSkewer
 public:
     InputSkewer(){}
     
-#pragma hls_design interface ccore
+// #pragma hls_design interface ccore
+// #pragma hls_pipeline_init_interval 1
     void CCS_BLOCK(run)(T &input, T &output){
         
         #define INPUT_FIFO_BODY(z,i,unused) \

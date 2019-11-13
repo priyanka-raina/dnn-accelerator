@@ -3,7 +3,7 @@ set blockname [file rootname [file tail [info script] ]]
 source scripts/common.tcl
 
 directive set -DESIGN_HIERARCHY { 
-    {SystolicArrayCore<IDTYPE, ODTYPE, 1, 16, 16>}
+    {SystolicArrayCore<IDTYPE, ODTYPE, 16, 1, 16>}
 }
 if { 0 } {
     {conv}
@@ -64,22 +64,22 @@ solution library add {[CCORE] ProcessingElement<IDTYPE,ODTYPE,1>.v1}
 
 go libraries
 directive set -CLOCKS {clk {-CLOCK_PERIOD 5 -CLOCK_EDGE rising -CLOCK_HIGH_TIME 2.5 -CLOCK_OFFSET 0.000000 -CLOCK_UNCERTAINTY 0.0 -RESET_KIND sync -RESET_SYNC_NAME rst -RESET_SYNC_ACTIVE high -RESET_ASYNC_NAME arst_n -RESET_ASYNC_ACTIVE low -ENABLE_NAME {} -ENABLE_ACTIVE high}}
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/ProcessingElement<IDTYPE,ODTYPE,1> -MAP_TO_MODULE {[CCORE] ProcessingElement<IDTYPE,ODTYPE,1>.v1}
-# directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/InputSkewer<PackedStencil<16UL,16UL,1UL,1UL,1UL>> -MAP_TO_MODULE {[CCORE] InputSkewer<PackedStencil<16UL,16UL,1UL,1UL,1UL>>.v1}
-# directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -MAP_TO_MODULE {[CCORE] OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16>.v1}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/ProcessingElement<IDTYPE,ODTYPE,1> -MAP_TO_MODULE {[CCORE] ProcessingElement<IDTYPE,ODTYPE,1>.v1}
+# directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/InputSkewer<PackedStencil<16UL,16UL,1UL,1UL,1UL>> -MAP_TO_MODULE {[CCORE] InputSkewer<PackedStencil<16UL,16UL,1UL,1UL,1UL>>.v1}
+# directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -MAP_TO_MODULE {[CCORE] OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16>.v1}
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -REGISTER_OUTPUT true
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64> -OUTPUT_DELAY 4.95
 
 go assembly
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run -DESIGN_GOAL Latency
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run -CLOCK_OVERHEAD 0.000000
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run -DESIGN_GOAL Latency
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run -CLOCK_OVERHEAD 0.000000
 
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -INTERLEAVE 16
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -BLOCK_SIZE 256
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tile:rsc -MAP_TO_MODULE $accum_buffer_module
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tile.value:rsc -INTERLEAVE 16
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tile.value:rsc -BLOCK_SIZE 256
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tile.value:rsc -MAP_TO_MODULE $accum_buffer_module
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -REGISTER_OUTPUT true
 
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/output:rsc -OUTPUT_DELAY 4.950000
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/output:rsc -OUTPUT_DELAY 4.950000
 
 # # Accumulation buffer
 # for {set i 0}  {$i < 16} {incr i} {
@@ -87,11 +87,11 @@ directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/output:rsc -OUTPUT_DELAY
 # }
 
 # set registers for arrays
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/in_tmp2:rsc -MAP_TO_MODULE {[Register]}
-directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16>/run/out_tmp2.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/in_tmp2:rsc -MAP_TO_MODULE {[Register]}
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tmp2.value:rsc -MAP_TO_MODULE {[Register]}
 go architect
 
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/run/write_port(106,512) -REGISTER_OUTPUT true

@@ -30,7 +30,7 @@ struct LoopParams{
 #define MOD(x,y)\
     ( ( (x) % (y) + y ) % y )
 
-template <typename IDTYPE, typename ODTYPE, int K_II, int K_I, int C_I>
+template <typename IDTYPE, typename ODTYPE, int K_I, int K_II, int C_I>
 class SystolicArrayCore
 {
 public:
@@ -39,9 +39,9 @@ public:
 #pragma hls_design interface
 #pragma hls_pipeline_init_interval 1
     void run(
-        ac_channel<PackedStencil<INPUT_PRECISION, C_I, 1, 1> > &input, 
-        ac_channel<PackedStencil<INPUT_PRECISION, K_II, K_I, 1> > &weight, 
-        ac_channel<PackedStencil<OUTPUT_PRECISION, K_II, K_I, 1> > &output,
+        ac_channel<InputPack<INPUT_PRECISION, C_I> > &input, 
+        ac_channel<WeightPack<INPUT_PRECISION, K_I, K_II> > &weight, 
+        ac_channel<WeightPack<OUTPUT_PRECISION, K_I, K_II> > &output,
         ac_channel<LoopParams> &paramsIn)
     {
         #ifndef __SYNTHESIS__
@@ -74,10 +74,19 @@ public:
                                     // filling phase for systolic array, put data into local registers 
                                     if (step < C_I) {      
                                     // if(params_old.weight_read){      
-                                        PackedStencil<INPUT_PRECISION,K_II, K_I> w_row = weight.read();
+                                        WeightPack<INPUT_PRECISION,K_I,KII> w_row = weight.read();
+                                        #pragma hls_unroll yes
                                         for(int j = 0; j < K_I; j++){
-                                            w_tile[step][j] = w_row.get_dim(j,0,0);
+                                            for(int jj = 0; jj < KII; jj++){
+                                                w_tile[step][j].value[jj] = w_row.value[j][jj];
+                                            }
+                                            
                                         }
+                                        // w_row.unpack(w_tile[step]);
+                                        // #pragma hls_unroll yes
+                                        // for(int j = 0; j < K_I; j++){
+                                        //     w_tile[step][j] = w_row.get_dim(j,0,0);
+                                        // }
                                         // w_tile[step] = w_row;
                                         /*#ifndef __SYNTHESIS__
                                         for (int col = 0; col<K_I; col++) {
@@ -88,7 +97,7 @@ public:
 
                                     /* read input from the output stream of the double buffer,
                                     push input to fifos, and read input from fifos into local registers*/
-                                    PackedStencil<INPUT_PRECISION, C_I,1,1> in_col;
+                                    InputPack<INPUT_PRECISION, C_I> in_col;
                                     if (step < (params.X_I*params.Y_I)) {        
                                     // if (params_old.input_read) {        
                                     in_col = input.read();
@@ -100,41 +109,57 @@ public:
                                     }
                             
                                     // The local registers serve data to the first column of PE array. 
-                                    PackedStencil<INPUT_PRECISION, C_I,1,1> input_buf;
+                                    InputPack<INPUT_PRECISION, C_I> input_buf;
 
                                     /* A trianglar shape of FIFOs, used for skewing the array front,
                                     such that the right input data comes to the right PE at the right timing.*/
-                                    // #define INPUT_FIFO_BODY(z,i,unused) \
-                                    // IDTYPE BOOST_PP_CAT(input_fifo_output_, i); \
-                                    // IDTYPE BOOST_PP_CAT(input_fifo_input_, i) = in_col.read(i ,0,0); \
-                                    // BOOST_PP_CAT(input_fifo_, i).run( BOOST_PP_CAT(input_fifo_input_, i) , BOOST_PP_CAT(input_fifo_output_, i) ); \
+                                    #define INPUT_FIFO_BODY(z,i,unused) \
+                                    IDTYPE BOOST_PP_CAT(input_fifo_output_, i); \
+                                    IDTYPE BOOST_PP_CAT(input_fifo_input_, i) = in_col.value[i]; \
+                                    BOOST_PP_CAT(input_fifo_, i).run( BOOST_PP_CAT(input_fifo_input_, i) , BOOST_PP_CAT(input_fifo_output_, i) ); \
+                                    input_buf.value[i] = BOOST_PP_CAT(input_fifo_output_, i);
                                     // input_buf.write(BOOST_PP_CAT(input_fifo_output_, i), i ,0,0,0);
-                                    // REPEAT(INPUT_FIFO_BODY)
-                                    inputSkewer.run(in_col, input_buf);
+                                    REPEAT(INPUT_FIFO_BODY)
+                                    // inputSkewer.run(in_col, input_buf);
                             
                                     /*#ifndef __SYNTHESIS__
                                     printf("starting step %d - input %d %d %d %d\n", step, input_fifo_0,input_fifo_1,input_fifo_2,input_fifo_3);
                                     #endif*/
 
                                     
-                                    PackedStencil<OUTPUT_PRECISION, K_II, K_I,1> output_buf;
+                                    WeightPack<OUTPUT_PRECISION, K_I,KII> output_buf;
 
                                     // initial partial output of 0
                                     if(params.c_idx == 0 && params.wx_idx == 0 && params.wy_idx == 0) {
                                     // if(params_old.clear_output_buffer) {
-                                        output_buf.clear();
+                                        // output_buf.clear();
+                                        #pragma hls_unroll yes
+                                        for(int j = 0; j < K_I; j++){
+                                            for(int jj = 0; jj < K_II; jj++){
+                                                output_buf.value[j][jj].template set_val<AC_VAL_0>();
+                                            }
+                                        }
                                     }
                                     else{ // read partial output from accumulation buffer
                                         #pragma hls_unroll yes
-                                        for(int i = 0; i < C_I; ++i){
-                                            PackedStencil<OUTPUT_PRECISION, K_II> tmp_row;
-                                            int address = MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256);
-                                            tmp_row.value = out_tile[address][i];
-                                            output_buf.set_dim(tmp_row, i, 0, 0);
+                                        for(int j = 0; j < K_I; j++){
+                                            int address = MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- j), 256);
+                                            #pragma hls_unroll yes
+                                            for(int jj = 0; jj < K_II; jj++){
+                                                output_buf.value[j][jj] = out_tile[address][j].value[jj];
+                                            }
+                                            
                                         }
+                                        // #pragma hls_unroll yes
+                                        // for(int i = 0; i < C_I; ++i){
+                                        //     NewPackedStencil<OUTPUT_PRECISION, K_II> tmp_row;
+                                        //     int address = MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256);
+                                        //     tmp_row.value[i] = out_tile[address][i];
+                                        //     output_buf.set_dim(tmp_row, i, 0, 0);
+                                        // }
                                     
                                     // #define TMP_ROW_OUT(z,i,unused) \
-                                    //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(tmp_row_, i); \
+                                    //     NewPackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(tmp_row_, i); \
                                     //     BOOST_PP_CAT(tmp_row_, i).value = BOOST_PP_CAT(out_tile_, i)[ MOD( (params.koi_idx*(params.X_I*params.Y_I) + step + K_I- i), 256) ]; \
                                     //     output_buf.set_dim(BOOST_PP_CAT(tmp_row_, i), i, 0, 0);
                                     // REPEAT(TMP_ROW_OUT)
@@ -147,13 +172,18 @@ public:
                                     //initialize the input registers in the first column 
                                     #pragma hls_unroll yes
                                     LABEL(INIT_IN) for(int i = 0; i < C_I; ++i) {
-                                        in_tmp[i+1][0] = input_buf.read(i,0,0);
+                                        in_tmp[i+1][0] = input_buf.value[i];
+                                        // in_tmp[i+1][0] = input_buf.read(i,0,0);
                                     }
                                 
                                     //initialize the output registers in the first row 
                                     #pragma hls_unroll yes
                                     LABEL(INIT_OUT) for(int j = 0; j < K_I; ++j) {
-                                        out_tmp[0][j+1] = output_buf.get_dim(j, 0, 0);
+                                        for(int jj =0; jj < KII; jj++){
+                                        out_tmp[0][j+1].value[jj] = output_buf.value[j][jj];
+                                        }
+                                        // out_tmp[0][j+1] = output_buf.get_dim(j, 0, 0);
+
                                     }
                                 
 
@@ -162,12 +192,12 @@ public:
                                     LABEL(COL) for (int j=0; j < K_I; ++j) {
                                         #pragma hls_unroll yes
                                         LABEL(ROW) for (int i=0; i < C_I; ++i) {
-                                        // PackedStencil<INPUT_PRECISION, K_II> weight_value = w_tile[i].get_dim(j,0,0);
+                                        // NewPackedStencil<INPUT_PRECISION, K_II> weight_value = w_tile[i].get_dim(j,0,0);
                                         pe[i][j].run(in_tmp[i+1][j], out_tmp[i][j+1], w_tile[i][j], in_tmp2[i+1][j+1], out_tmp2[i+1][j+1]);
                                         } //ROW
                                     } //COL
                                     
-                                    // PackedStencil<OUTPUT_PRECISION, K_II, K_I> unskewed_output;
+                                    // NewPackedStencil<OUTPUT_PRECISION, K_I,KII> unskewed_output;
                                     // peArray.run(
                                     //     input_buf,
                                     //     output_buf,
@@ -182,7 +212,7 @@ public:
                                     
                                 
                                     // #define FIFO_WRITE_BODY(z,i,unused)\
-                                    //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
+                                    //     NewPackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(sys_array_out_,i) = out_tmp[C_I][i+1];
                                     // REPEAT(FIFO_WRITE_BODY)
 
                                     
@@ -195,19 +225,43 @@ public:
                                     if (params.c_idx==params.C_O-1 && params.wx_idx == params.WS-1 && params.wy_idx == params.WS-1) {
                                     // if (params_old.add_to_output) {
                                         // #define FIFO_WRITE_BODY_NEW(z,i,unused)\
-                                        //     PackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
+                                        //     NewPackedStencil<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
                                         //     BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(sys_array_out_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
                                         //     output_row.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
                                         // REPEAT(FIFO_WRITE_BODY_NEW)
 
-                                        PackedStencil<OUTPUT_PRECISION, K_II, K_I> unskewed_output;
-                                        PackedStencil<OUTPUT_PRECISION, K_II, K_I> output_row;
-                                        #pragma hls_unroll yes
-                                        for(int i = 0; i < C_I; i++){
-                                            unskewed_output.write(out_tmp[C_I][i+1], 0, i, 0, 0);
-                                        }
+                                        // WeightPack<OUTPUT_PRECISION, K_I,KII> unskewed_output;
+                                        WeightPack<OUTPUT_PRECISION, K_I,KII> output_row;
+                                        // #pragma hls_unroll yes
+                                        // for(int i = 0; i < C_I; i++){
+                                        //     // unskewed_output.write(out_tmp[C_I][i+1], 0, i, 0, 0);
+                                        
+                                        //         unskewed_output.value[i] = out_tmp[C_I][i+1];
+                                            
+                                        // }
 
-                                        outputSkewer.run(unskewed_output, output_row);
+                                        // outputSkewer.run(unskewed_output, output_row);
+
+
+                                        // OT tmp_output;
+                                        // #define OUTPUT_FIFO_WRITE(z,i,unused) \
+                                        //     IT BOOST_PP_CAT(output_fifo_output_, i); \
+                                        //     IT BOOST_PP_CAT(output_fifo_input_, i); \
+                                        //     BOOST_PP_CAT(output_fifo_input_, i) = input.value[i]; \
+                                        //     BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(output_fifo_input_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
+                                        //     tmp_output.value[i] = BOOST_PP_CAT(output_fifo_output_,i).value; 
+                                            
+                                        // REPEAT(OUTPUT_FIFO_WRITE)
+
+
+                                        #define FIFO_WRITE_BODY_NEW(z,i,unused)\
+                                        InputPack<OUTPUT_PRECISION, K_II> BOOST_PP_CAT(output_fifo_output_, i); \
+                                        BOOST_PP_CAT(output_fifo_, i).run( out_tmp[C_I][i+1] , BOOST_PP_CAT(output_fifo_output_, i) );\
+                                        for(int jj = 0; jj < KII; jj++){\
+                                            output_row.value[i][jj] = BOOST_PP_CAT(output_fifo_output_,i).value[jj]; \    
+                                        }
+                                        
+                                        REPEAT(FIFO_WRITE_BODY_NEW)
 
                                         if(step >= K_I+C_I-1){
                                             output.write(output_row);
@@ -225,7 +279,12 @@ public:
                                             #pragma hls_unroll yes
                                             for(int i = 0; i < C_I; i++){
                                                 int address = MOD( (params.koi_idx*(params.X_I*params.Y_I)+step-(K_I)+K_I-i), 256);
-                                                out_tile[address][i] = out_tmp[C_I][i+1];
+                                                #pragma hls_unroll yes
+                                                for(int jj = 0; jj < K_II; jj++)
+                                                {
+                                                    out_tile[address][i].value[jj] = out_tmp[C_I][i+1].value[jj];
+                                                }
+                                                
                                                 // out_tile[address][i] = unskewed_output.read(0, i, 0, 0);
                                             }
                                         }
@@ -264,7 +323,7 @@ public:
     }
 
 private:
-    // PEArray<IDTYPE, ODTYPE, K_II, K_I, C_I, X_I, Y_I, K> peArray;
+    // PEArray<IDTYPE, ODTYPE, K_I,KII, C_I, X_I, Y_I, K> peArray;
     // C_I x K_I PE array
     ProcessingElement<IDTYPE, ODTYPE, K_II> pe[C_I][K_I];
 
@@ -272,19 +331,20 @@ private:
 // #define OUT_TILE_INIT(z, i, unused) \
 //     ac_int<OUTPUT_PRECISION * K_II, false> BOOST_PP_CAT(out_tile_, i)[256];
 //     REPEAT(OUT_TILE_INIT)
-    ac_int<OUTPUT_PRECISION * K_II, false> out_tile[256][C_I];
+    // ac_int<OUTPUT_PRECISION * K_II, false> out_tile[256][C_I];
+    InputPack<OUTPUT_PRECISION, K_II> out_tile[256][C_I];
 
-// #define INPUT_FIFOS_INIT(z, i, unused) \
-//     Fifo<IDTYPE, i + 1> BOOST_PP_CAT(input_fifo_, i);
-//     REPEAT(INPUT_FIFOS_INIT)
-    InputSkewer<PackedStencil<INPUT_PRECISION, C_I> > inputSkewer;
+#define INPUT_FIFOS_INIT(z, i, unused) \
+    Fifo<IDTYPE, i + 1> BOOST_PP_CAT(input_fifo_, i);
+    REPEAT(INPUT_FIFOS_INIT)
+    // InputSkewer<NewPackedStencil<INPUT_PRECISION, C_I> > inputSkewer;
 
-// #define OUTPUT_FIFOS_INIT(z, i, unused) \
-//     Fifo<PackedStencil<OUTPUT_PRECISION, K_II>, K_I - i> BOOST_PP_CAT(output_fifo_, i);
-//     REPEAT(OUTPUT_FIFOS_INIT)
-    OutputSkewer<PackedStencil<OUTPUT_PRECISION, K_II>, PackedStencil<OUTPUT_PRECISION, K_II, K_I>, K_I > outputSkewer;
+#define OUTPUT_FIFOS_INIT(z, i, unused) \
+    Fifo<InputPack<OUTPUT_PRECISION, K_II>, K_I - i> BOOST_PP_CAT(output_fifo_, i);
+    REPEAT(OUTPUT_FIFOS_INIT)
+    // OutputSkewer<InputPack<OUTPUT_PRECISION, K_II>, WeightPack<OUTPUT_PRECISION, K_I,KII>, K_I > outputSkewer;
 
-    PackedStencil<INPUT_PRECISION,K_II> w_tile[C_I][K_I];
+    InputPack<INPUT_PRECISION,K_II> w_tile[C_I][K_I];
 
     /*
   the registers that used for relaying input and output in horizonal and vertical directions respectively.
@@ -292,9 +352,9 @@ private:
   PE[i][j] fetch output data from register out_tmp[i][j+1], at next cycle forward the data to out_tmp[i+1][j+1]
   */
     IDTYPE in_tmp[C_I + 1][K_I + 1];
-    PackedStencil<OUTPUT_PRECISION, K_II, 1, 1> out_tmp[C_I + 1][K_I + 1];
+    InputPack<OUTPUT_PRECISION, K_II> out_tmp[C_I + 1][K_I + 1];
     IDTYPE in_tmp2[C_I+1][K_I+1];
-    PackedStencil<OUTPUT_PRECISION, K_II, 1, 1> out_tmp2[C_I+1][K_I+1];
+    InputPack<OUTPUT_PRECISION, K_II> out_tmp2[C_I+1][K_I+1];
 
     LoopParams params;
     // Params params;

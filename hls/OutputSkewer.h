@@ -27,15 +27,17 @@ class OutputSkewer
 public:
     OutputSkewer(){}
     
-#pragma hls_design interface ccore
-    void run(OT &input, OT &output){
+// #pragma hls_design interface ccore
+// #pragma hls_pipeline_init_interval 1    
+void run(OT &input, OT &output){
         OT tmp_output;
         #define OUTPUT_FIFO_WRITE(z,i,unused) \
             IT BOOST_PP_CAT(output_fifo_output_, i); \
             IT BOOST_PP_CAT(output_fifo_input_, i); \
-            BOOST_PP_CAT(output_fifo_input_, i).value = input.read(0,i,0,0); \
+            BOOST_PP_CAT(output_fifo_input_, i) = input.value[i]; \
             BOOST_PP_CAT(output_fifo_, i).run( BOOST_PP_CAT(output_fifo_input_, i) , BOOST_PP_CAT(output_fifo_output_, i) );\
-            tmp_output.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
+            tmp_output.value[i] = BOOST_PP_CAT(output_fifo_output_,i).value; 
+            // tmp_output.set_dim(BOOST_PP_CAT(output_fifo_output_,i), i,0,0); 
             
         REPEAT(OUTPUT_FIFO_WRITE)
 

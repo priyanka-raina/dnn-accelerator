@@ -16,18 +16,19 @@ public:
 #pragma hls_design interface ccore
     void CCS_BLOCK(run)(
         IDTYPE &input_in,
-        PackedStencil<OUTPUT_PRECISION, KI, 1, 1> &psum_in,
-        PackedStencil<INPUT_PRECISION, KI, 1, 1> &weight,
+        InputPack<OUTPUT_PRECISION, KI> &psum_in,
+        InputPack<INPUT_PRECISION, KI> &weight,
         IDTYPE &input_out,
-        PackedStencil<OUTPUT_PRECISION, KI, 1, 1> &psum_out)
+        InputPack<OUTPUT_PRECISION, KI> &psum_out)
     {
         input_reg = input_in;
         weight_reg = weight;
         psum_reg = psum_in;
 
+        #pragma hls_unroll no
         LABEL(MAC) for(int i = 0; i < KI; i++){
-            ODTYPE tmp = input_reg * (IDTYPE)weight_reg.read(i, 0, 0) + psum_reg.read(i, 0, 0);
-            psum_reg.write(tmp, i, 0, 0, 0);
+            ODTYPE tmp = input_reg * (IDTYPE)weight_reg.value[i] + psum_reg.value[i];
+            psum_reg.value[i] = tmp;
         }
         
         input_out = input_reg;
@@ -36,8 +37,8 @@ public:
 
 private:
     IDTYPE input_reg;
-    PackedStencil<INPUT_PRECISION, KI, 1, 1> weight_reg;
-    PackedStencil<OUTPUT_PRECISION, KI, 1, 1> psum_reg;
+    InputPack<INPUT_PRECISION, KI> weight_reg;
+    InputPack<OUTPUT_PRECISION, KI> psum_reg;
 };
 
 #endif

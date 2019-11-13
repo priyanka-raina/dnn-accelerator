@@ -34,9 +34,9 @@ CCS_MAIN(int argc, char *argv[])
     IDTYPE weight[W_SIZE][W_SIZE][C_NUM][K_NUM]; 
     ODTYPE output_ref[OROW][OCOL][K_NUM];
   
-    static ac_channel<PackedStencil<INPUT_PRECISION, CI_NUM> > input_stream;
-    static ac_channel<PackedStencil<INPUT_PRECISION, KII, KI_NUM> > weight_stream;
-    static ac_channel<PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> > output_stream;
+    static ac_channel<InputPack<INPUT_PRECISION, CI_NUM> > input_stream;
+    static ac_channel<WeightPack<INPUT_PRECISION, KI_NUM, KII> > weight_stream;
+    static ac_channel<WeightPack<OUTPUT_PRECISION, KI_NUM, KII> > output_stream;
   
   
     int errCnt = 0;
@@ -57,9 +57,10 @@ CCS_MAIN(int argc, char *argv[])
         for (int c=0; c<CO_NUM; c++) {
           for (int p = 0; p < STRIDE_LEN*OROW_I + W_SIZE - 1; p++ ){
             for (int j = 0; j < STRIDE_LEN*OCOL_I + W_SIZE - 1; j++ ){
-              PackedStencil<INPUT_PRECISION, CI_NUM> input_col;
+              InputPack<INPUT_PRECISION, CI_NUM> input_col;
               for (int i = 0; i < CI_NUM; i++ ){
-                input_col.write(input[ro*STRIDE_LEN*OROW_I+p][co*STRIDE_LEN*OCOL_I+j][c*CI_NUM+i], i,0,0,0);
+                input_col.value[i] = input[ro*STRIDE_LEN*OROW_I+p][co*STRIDE_LEN*OCOL_I+j][c*CI_NUM+i];
+                // input_col.write(input[ro*STRIDE_LEN*OROW_I+p][co*STRIDE_LEN*OCOL_I+j][c*CI_NUM+i], i,0,0,0);
               }  // for i
               input_stream.write(input_col);
             }  // for j 
@@ -83,7 +84,6 @@ CCS_MAIN(int argc, char *argv[])
     }
     
     // streaming weight to the interface
-    PackedStencil<INPUT_PRECISION, KII, KI_NUM> weight_row;
     for (int ro = 0; ro < OROW_O; ro++) {
       for (int co = 0; co < OCOL_O; co++) {     
         for(int koo = 0; koo < KOO_NUM; koo++){
@@ -92,9 +92,11 @@ CCS_MAIN(int argc, char *argv[])
               for (int wy = 0; wy <W_SIZE; wy++) {
                 for (int wx = 0; wx <W_SIZE; wx++) {
                   for ( int i = 0; i < CI_NUM; i++ ){
+                    WeightPack<INPUT_PRECISION, KI_NUM, KII> weight_row;
                     for ( int j = 0; j < KI_NUM; j++ ){
                       for (int jj=0; jj < KII; jj++) {
-                        weight_row.write(weight[wy][wx][c*CI_NUM+i][(koo*KO_NUM+k)*KI_NUM*KII + j*KII + jj], jj,j,0,0);
+                        weight_row.value[j][jj] = weight[wy][wx][c*CI_NUM+i][(koo*KO_NUM+k)*KI_NUM*KII + j*KII + jj];
+                        // weight_row.write(weight[wy][wx][c*CI_NUM+i][(koo*KO_NUM+k)*KI_NUM*KII + j*KII + jj], jj,j,0,0);
                       } // for jj
                     }  // for j
                     weight_stream.write(weight_row);
@@ -130,10 +132,10 @@ CCS_MAIN(int argc, char *argv[])
           for (int k = 0; k < KO_NUM; k++) {
             for (int p = 0; p < OROW_I; p++ ){
               for (int i = 0; i < OCOL_I; i++ ){
-                PackedStencil<OUTPUT_PRECISION, KII, KI_NUM> output_col = output_stream.read();
+                WeightPack<OUTPUT_PRECISION, KI_NUM, KII> output_col = output_stream.read();
                 for (int j = 0; j < KI_NUM; j++) {
                   for (int jj = 0; jj < KII; jj++) {
-                    ODTYPE out_value = output_col.read(jj, j);
+                    ODTYPE out_value = output_col.value[j][jj];
                     if((long long)output_ref[ro*OROW_I+p][co*OCOL_I+i][(koo*KO_NUM+k)*KI_NUM*KII+j*KII+jj] != (long long)out_value) {
                       printf("***ERROR***\n");
                       CCS_RETURN(0);

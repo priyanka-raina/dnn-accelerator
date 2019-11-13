@@ -101,9 +101,9 @@ public:
 #pragma hls_design interface
 #pragma hls_pipeline_init_interval 1
     void run(
-        ac_channel<PackedStencil<INPUT_PRECISION, C_I, 1, 1> > &input, 
-        ac_channel<PackedStencil<INPUT_PRECISION, K_II, K_I, 1> > &weight, 
-        ac_channel<PackedStencil<OUTPUT_PRECISION, K_II, K_I, 1> > &output,
+        ac_channel<InputPack<INPUT_PRECISION, C_I> > &input, 
+        ac_channel<WeightPack<INPUT_PRECISION, K_II, K_I> > &weight, 
+        ac_channel<WeightPack<OUTPUT_PRECISION, K_II, K_I> > &output,
         ac_channel<Params> &paramsIn)
     {
         systolicArrayLooper.run(paramsIn, loopParamsChannel);
