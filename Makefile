@@ -6,10 +6,10 @@ hls:
 sim: hls
 	cd sim && $(MAKE)
 
-syn: hls
+syn: sim
 	cd syn && $(MAKE)
 
-pt: sim syn
+pt: sim
 	cd pt && $(MAKE)
 
 pnr: syn
