@@ -8,3 +8,4 @@ solution library add custom4096x256
 
 
 set accum_buffer_module tsdn40lpa256x32m8f_tt1p1v25c.TSDN40LPA256X32M8F
+set double_buffer_module custom4096x256.custom4096x256

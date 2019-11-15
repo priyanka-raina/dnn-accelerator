@@ -6,3 +6,4 @@ solution library add custom4096X256
 solution library add ts6n28hpla256x16m4swbs_tt1v25c
 
 set accum_buffer_module ts6n28hpla256x32m4swbs_tt1v25c.TS6N28HPLA256X32M4SWBS
+set double_buffer_module custom4096X256.custom4096X256
