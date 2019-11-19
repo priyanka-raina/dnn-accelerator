@@ -6,15 +6,21 @@ if {[file isdirectory build]} {
     project save
 }
 
+options set Input/TargetPlatform x86_64
+options set Input/SearchPath /home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13
+options set Output/OutputVHDL false
+
 flow package require /SCVerify
 flow package option set /SCVerify/USE_CCS_BLOCK true
 flow package option set /SCVerify/USE_NCSIM true
-flow package option set /SCVerify/USE_VCS true
+flow package option set /SCVerify/USE_VCS false
+flow package option set /SCVerify/USE_MSIM false
 
 flow package require /NCSim
 
-solution options set Flows/NCSim/NCSIM_DOFILE dump_saif.do
+solution options set Flows/NCSim/NCSIM_DOFILE ./scripts/dump_saif.do
 solution options set Flows/NCSim/NC_ROOT /cad/cadence/INCISIVE15.20.022/
+
 
 # Delete solution if already exists
 catch {
@@ -31,8 +37,8 @@ catch {
 # solution new -state initial $blockname
 
 go new
-solution file add ./conv_top.cpp
-solution file add ./tb_gemm_systolic.cpp -exclude true
+solution file add ./src/conv_top.cpp
+solution file add ./src/tb_gemm_systolic.cpp -exclude true
 
 go analyze
 

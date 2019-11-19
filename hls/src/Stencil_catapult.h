@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <assert.h>
-#include "ac_channel.h"
+#include <ac_channel.h>
 
 ///Forward declaration
 template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t EXTENT_3> struct Stencil;
@@ -21,7 +21,7 @@ template <typename T, size_t EXTENT_0, size_t EXTENT_1, size_t EXTENT_2, size_t 
 
 #undef true
 #undef false
-#include "ac_int.h"
+#include <ac_int.h>
 
 // union single_cast {
 //   float f;

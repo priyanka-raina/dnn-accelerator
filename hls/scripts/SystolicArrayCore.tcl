@@ -69,7 +69,7 @@ directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/ProcessingElement<IDTYPE
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -MAP_TO_MODULE {[CCORE] OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16>.v1}
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64>/OutputSkewer<PackedStencil<32UL,1UL,1UL,1UL,1UL>,PackedStencil<32UL,1UL,16UL,1UL,1UL>,16> -REGISTER_OUTPUT true
 # directive set /SystolicArrayCore<IDTYPE,ODTYPE,1,16,16,7,7,64> -OUTPUT_DELAY 4.95
-
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16> -REGISTER_THRESHOLD 4096
 go assembly
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run -DESIGN_GOAL Latency
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run -CLOCK_OVERHEAD 0.000000
@@ -87,6 +87,7 @@ directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/output:rsc -OUTPUT_DELAY
 # }
 
 # set registers for arrays
+directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16> -REGISTER_THRESHOLD 4096
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/in_tmp:rsc -MAP_TO_MODULE {[Register]}
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/out_tmp.value:rsc -MAP_TO_MODULE {[Register]}
 directive set /SystolicArrayCore<IDTYPE,ODTYPE,16,1,16>/run/w_tile.value:rsc -MAP_TO_MODULE {[Register]}
