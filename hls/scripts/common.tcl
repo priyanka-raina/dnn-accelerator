@@ -7,8 +7,9 @@ if {[file isdirectory build]} {
 }
 
 options set Input/TargetPlatform x86_64
-options set Input/SearchPath /home/kprabhu7/dnn-accelerator/conv_systolic_packed_v13
+options set Input/SearchPath ./src
 options set Output/OutputVHDL false
+options set Architectural/DefaultRegisterThreshold 4096
 
 flow package require /SCVerify
 flow package option set /SCVerify/USE_CCS_BLOCK true
