@@ -1,43 +1,5 @@
 # DNN Accelerator Generator
 
-## Timeline
-| Date | Task |
-|------|------|
-| 5/24 | :white_check_mark: 200 MHz clock |
-| 5/24 | :white_check_mark: Replace FIFOs for accumulation buffer with indexing |
-| 5/29 | :white_check_mark: Make sure MAC excutes every cycle (fix pipelining) |
-| 5/29 | :white_check_mark: PrimeTime power simulation |
-| 5/29 | :white_check_mark: Summarize HLS coding techniques used in the design |
-| 8/04 | :white_check_mark: Testbench to set up full ResNet on ImageNet in CPP and RTL |
-| 8/11 | :white_check_mark: Rewrite code to use class-based hierarchy (should get better results) |
-| 8/07 | :white_check_mark: Unify input and weight buffers (done, but still functions) |
-| 8/07 | :white_check_mark: Run 16x16 design through place and route flow (get Massimo to replicate the flow)|
-| 9/17 | :white_check_mark: Get unified input and weight buffer to work with hierarchical |
-| 9/30 | :white_check_mark: Stride works in HLS (1, 2, 3 tested) |
-| 9/30 | :white_check_mark: Resnet testbench all layers except first (Massimo) |
-| 9/30 | :white_check_mark: Can extract quantized weights from distiller (Rohan) |
-| 10/10 | :white_check_mark: Test SRAM license (Massimo) |
-| 10/10 | :white_check_mark: Fix ncsim makefile (Kartik) |
-| 10/10 | :white_check_mark: History fsm and RRAM memory ctrl synthesis with 40R works |
-| 10/17 | :white_check_mark: Working on history fsm P&R right now (Massimo) |
-| 10/17 | :white_check_mark: Figure out the high level spec of the system (Massimo) |
-| 10/17 | :white_check_mark: Generating some power numbers (Rohan) |
-| 10/17 | :white_check_mark: Example RISC-V SOC through verilog, software (Kalhan) |
-| 10/17 | :white_check_mark: Fix setup, hold -- no violations after syn (Kartik) |
-| 10/24 | :white_check_mark: Run P&R make sure no setup, hold (Kartik) |
-| 10/24 | What applications we want to show, memory (SRAM, RRAM) banking and addressing (Massimo, Rohan) |
-| 10/24 | Working on history fsm DRC, LVS (Massimo) |
-| 10/24 | Resnet testbench first layer (Massimo) |
-| 10/24 | LSTM testbench (matrix - vector works) some bound on error (Rohan) |
-| 10/24 | Push resnet and LSTM through power estimation (Rohan) |
-| 10/24 | Hook up rocket core to systolic array (send receive something) (Kalhan) |
-| 10/24 | Run P&R make sure no DRC, LVS (Kartik) |
-| 10/24 | Generate optimal schedule using Xuan's scheduler (modify the scheduler to obey accumulation buffer size constraints) |
-| 10/24 | Energy comparision with Xuan's model and ENVISION |
-|       | Register file in PEs |
-|       | Figure out I/O multiplexing |
-|       | Configuration through JTAG (talk to Alex) |
-
 ## Analytical model and auto-scheduler
 https://github.com/xuanyoya/CNN-blocking/tree/dev
 
